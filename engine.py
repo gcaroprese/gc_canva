@@ -731,10 +731,9 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         img.paste(grad, (gx, gy), grad)
 
     elif etype == "asset":
-        # Shortcut para cargar assets del proyecto: {"type":"asset","name":"coffee_cup","x":100,"y":100,"w":300}
+        # Shortcut para cargar assets del proyecto
         name = el.get("name", "")
         asset_dir = os.path.join(PROJECT_ROOT, "static", "assets", "images")
-        # Buscar en orden: .webp, .png
         src_path = None
         for ext in [".webp", ".png", ".jpg"]:
             p = os.path.join(asset_dir, name + ext)
@@ -742,10 +741,16 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
                 src_path = p
                 break
         if src_path:
+            # Validacion automatica de calidad
+            check_img = Image.open(src_path)
+            if check_img.width < 300 or check_img.height < 300:
+                print(f"[engine] WARN: asset '{name}' baja res ({check_img.width}x{check_img.height})")
             el_copy = dict(el)
             el_copy["type"] = "image"
             el_copy["src"] = src_path
             _apply_element(img, draw, el_copy, opacity_factor)
+        else:
+            print(f"[engine] ERROR: asset '{name}' no encontrado")
 
     elif etype == "image":
         src = el.get("src", "")
