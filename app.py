@@ -206,6 +206,72 @@ def apply_filter():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/assets")
+def list_assets():
+    """Lista assets disponibles con transparencia."""
+    assets_dir = os.path.join(os.path.dirname(__file__), "static", "assets", "images")
+    assets = []
+    for f in sorted(os.listdir(assets_dir)):
+        if f.endswith((".webp", ".png")) and ("_nobg" in f or "_png" in f):
+            name = os.path.splitext(f)[0]
+            path = os.path.join(assets_dir, f)
+            from PIL import Image as PILImage
+            img = PILImage.open(path)
+            assets.append({
+                "name": name,
+                "file": f,
+                "width": img.width,
+                "height": img.height,
+                "size_kb": os.path.getsize(path) // 1024,
+                "url": f"/static/assets/images/{f}",
+            })
+    return jsonify(assets)
+
+
+@app.route("/api/templates")
+def list_templates():
+    """Lista templates disponibles."""
+    return jsonify([
+        {"id": "blog_dark_split", "name": "Blog Dark Split", "desc": "Contenido + foto fondo", "size": "1200x675"},
+        {"id": "blog_photo_hero", "name": "Blog Photo Hero", "desc": "Foto fullscreen + texto", "size": "1200x675"},
+        {"id": "dashboard_card", "name": "Dashboard Analytics", "desc": "Charts sin texto", "size": "1200x675"},
+        {"id": "product_showcase", "name": "Product Showcase", "desc": "Producto centrado con glow", "size": "1200x675"},
+        {"id": "church_post", "name": "Iglesia Post", "desc": "Verso + cruz dorada", "size": "1080x1080"},
+        {"id": "etsy_listing", "name": "Etsy Listing", "desc": "Producto tipografico", "size": "2000x2000"},
+    ])
+
+
+@app.route("/api/template/<template_id>", methods=["POST"])
+def generate_template(template_id):
+    """Genera imagen desde un template con parametros custom."""
+    from templates_lib import blog_dark_split, blog_photo_hero, dashboard_card, product_showcase, church_post, etsy_listing
+    params = request.get_json(force=True) or {}
+
+    templates = {
+        "blog_dark_split": blog_dark_split,
+        "blog_photo_hero": blog_photo_hero,
+        "dashboard_card": dashboard_card,
+        "product_showcase": product_showcase,
+        "church_post": church_post,
+        "etsy_listing": etsy_listing,
+    }
+
+    fn = templates.get(template_id)
+    if not fn:
+        return jsonify({"error": f"Template '{template_id}' no encontrado"}), 404
+
+    try:
+        spec = fn(**params)
+        img = generate_from_spec(spec)
+        fmt = params.get("format", "webp")
+        quality = int(params.get("quality", 92))
+        buf, mime, ext = export_image(img, fmt, quality)
+        b64 = base64.b64encode(buf.read()).decode()
+        return jsonify({"image": b64, "mime": mime, "width": spec["width"], "height": spec["height"]})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     print("=" * 55)
     print("  GC Canva - http://localhost:5050")

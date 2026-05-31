@@ -1531,6 +1531,75 @@ document.getElementById('aiDownloadBtn').addEventListener('click', async () => {
 });
 
 /* ------------------------------------------------------------------ */
+/* PRO TEMPLATES & ASSETS                                               */
+/* ------------------------------------------------------------------ */
+async function loadProTemplates() {
+  try {
+    const res = await fetch('/api/templates');
+    const templates = await res.json();
+    const c = document.getElementById('proTemplates');
+    if (!c) return;
+    c.innerHTML = templates.map(t =>
+      `<button class="qtpl-btn" data-tpl="${t.id}" title="${t.desc} (${t.size})">${t.name}</button>`
+    ).join('');
+    c.querySelectorAll('.qtpl-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.tpl;
+        const title = prompt('Titulo:', 'Mi Titulo');
+        if (!title) return;
+        btn.textContent = '...';
+        try {
+          const res = await fetch(`/api/template/${id}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, subtitle: 'Subtitulo descriptivo', brand: 'misite.com'}),
+          });
+          const data = await res.json();
+          if (data.error) { alert(data.error); return; }
+          const wrap = document.getElementById('aiPreviewWrap');
+          wrap.innerHTML = `<img src="data:${data.mime};base64,${data.image}">`;
+        } catch(e) { alert('Error: ' + e.message); }
+        btn.textContent = btn.dataset.tpl.replace(/_/g,' ');
+      });
+    });
+  } catch(e) { console.error('Pro templates:', e); }
+}
+
+async function loadAssetsList() {
+  try {
+    const res = await fetch('/api/assets');
+    const assets = await res.json();
+    const c = document.getElementById('assetsList');
+    if (!c) return;
+    c.innerHTML = assets.map(a =>
+      `<div class="icon-item" style="aspect-ratio:auto;padding:4px;margin-bottom:4px;display:flex;align-items:center;gap:8px;cursor:pointer" data-name="${a.name}" title="${a.width}x${a.height} ${a.size_kb}KB">
+        <img src="${a.url}" style="width:40px;height:40px;object-fit:contain;border-radius:4px">
+        <span style="font-size:11px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis">${a.name}</span>
+      </div>`
+    ).join('');
+    c.querySelectorAll('.icon-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const name = el.dataset.name;
+        fabric.Image.fromURL(`/static/assets/images/${name}.webp`, (img) => {
+          if (!img) { fabric.Image.fromURL(`/static/assets/images/${name}.png`, addAssetToCanvas); return; }
+          addAssetToCanvas(img);
+        });
+      });
+    });
+  } catch(e) { console.error('Assets:', e); }
+}
+
+function addAssetToCanvas(img) {
+  if (!img) return;
+  const maxSz = Math.min(S.canvasW * 0.5, S.canvasH * 0.5, 300);
+  if (img.width > maxSz || img.height > maxSz) img.scaleToWidth(Math.min(img.width, maxSz));
+  img.set({ left: (S.canvasW - img.getScaledWidth()) / 2, top: (S.canvasH - img.getScaledHeight()) / 2 });
+  canvas.add(img);
+  canvas.setActiveObject(img);
+  canvas.renderAll(); saveHistory();
+}
+
+/* ------------------------------------------------------------------ */
 /* TABS                                                                 */
 /* ------------------------------------------------------------------ */
 document.querySelectorAll('.ptab').forEach(btn => {
@@ -1623,7 +1692,7 @@ async function init() {
   document.getElementById('chInput').value = S.canvasH;
 
   // Load async resources
-  await Promise.all([loadPresets(), loadCatalog(), loadProjectFonts()]);
+  await Promise.all([loadPresets(), loadCatalog(), loadProjectFonts(), loadProTemplates(), loadAssetsList()]);
 
   renderGradPresets();
   renderQuickBgColors();
