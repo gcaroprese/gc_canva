@@ -1,62 +1,68 @@
-# GC Canva - Documentacion v4.4
+# GC Canva v4.6
 
-## Inicio rapido
+## Quick Start
 ```bash
 start.bat              # ventana nativa
-venv\Scripts\python app.py  # browser → http://localhost:5050
+venv\Scripts\python app.py  # browser http://localhost:5050
 ```
 
-## Templates reutilizables (templates_lib.py)
-
+## Templates (6 pro templates)
 ```python
-from templates_lib import blog_dark_split, product_showcase, dashboard_card
+from templates_lib import blog_dark_split
 spec = blog_dark_split(title="Mi Titulo", accent="#7c6bf5", brand="misite.com")
 ```
+| Template | Params | Size |
+|----------|--------|------|
+| blog_dark_split | title, subtitle, accent, bg_photo, brand | 1200x675 |
+| blog_photo_hero | title, subtitle, accent, photo, brand | 1200x675 |
+| dashboard_card | accent | 1200x675 |
+| product_showcase | product_image, accent, bg_tint | 1200x675 |
+| church_post | verse, reference, church_name, accent, bg_photo | 1080x1080 |
+| etsy_listing | title_lines, price, accent, product_image | 2000x2000 |
 
-| Template | Uso | Parametros |
-|----------|-----|------------|
-| blog_dark_split | Blog OG con split foto/texto | title, subtitle, accent, bg_photo, brand |
-| blog_photo_hero | Foto fullscreen + texto centrado | title, subtitle, accent, photo, brand |
-| dashboard_card | Analytics sin texto | accent |
-| product_showcase | Producto centrado con glow | product_image, accent, bg_tint |
+## API
+| Ruta | Metodo | Uso |
+|------|--------|-----|
+| /api/preview | POST | Preview JSON spec |
+| /api/download | POST | Download JSON spec |
+| /api/template/\<id\> | POST | Generate from template |
+| /api/templates | GET | List templates |
+| /api/assets | GET | List transparent assets (47) |
+| /api/qr | POST | QR code |
+| /api/filter | POST | Image filters |
+| /api/remove-bg | POST | Background removal (rembg) |
+| /api/fonts | GET | Available fonts (84) |
+| /api/presets | GET | Canvas size presets (32) |
 
 ## JSON Spec
-
 ```json
 {
   "width": 1200, "height": 675,
-  "background": "dark",
-  "antialias": 2,
-  "post": {"vignette": true, "tint": "#7c6bf5", "tint_strength": 0.03, "grain": true},
-  "elements": [...]
+  "background": "dark", "antialias": 2,
+  "post": {"vignette": true, "tint": "#7c6bf5", "grain": true},
+  "elements": [
+    {"type": "gradient", ...},
+    {"type": "text", "text": "Title", "text_gradient": {"color1": "#fff", "color2": "#aaa"}},
+    {"type": "asset", "name": "green_tea_nobg", "x": 100, "y": 100, "w": 400},
+    {"type": "contact_shadow", "x": 200, "y": 500, "w": 300, "h": 20, "blur": 15}
+  ]
 }
 ```
 
-## Elementos (16 tipos)
-rect, circle, ellipse, triangle, polygon, star, line, gradient, pill, divider, text, image, asset, arc, ring, grid, repeat
+## Elements (17)
+rect, circle, ellipse, triangle, polygon, star, line, gradient, pill, divider, text, image, asset, arc, ring, grid, repeat, contact_shadow
 
 ## Post-processing
-- **vignette**: oscurece bordes (vignette_strength 0-1)
-- **tint**: unifica color (tint + tint_strength)
-- **grain**: textura fotografica (grain_strength)
-- **blur**: profundidad de campo en imagenes (blur en el elemento)
-- **antialias**: render global a Nx (2 = 2x supersampling + LANCZOS)
+vignette, tint (color grading), grain (film noise), blur (depth of field), antialias (2x supersampling)
 
-## Features clave
-- Shadow universal, gradient text, multi-stop gradients, angle gradients
-- letter_spacing, uppercase, max_width, bg_color, valign
-- Image clip (circle/rounded/ellipse), rotate, blur
-- Grid layout, repeat patterns
-- Pills anti-aliased con centrado vertical
-- 22 named colors, 84 fuentes
+## Quality tools
+- `python quality_check.py` — audit all assets
+- `python tests/full_test.py` — generate and verify all templates
+- Assets auto-validated on load (warns <300px)
 
-## Assets (static/assets/images/)
-47 assets con transparencia. Correr `python quality_check.py` para auditar.
-
-## API
-POST /api/preview, /api/download, /api/qr, /api/filter, /api/remove-bg
-GET /api/fonts, /api/presets
-
-## Shortcuts
-V=Select T=Texto R=Rect C=Circulo L=Linea Del=Borrar
-Ctrl+Z/Y Ctrl+C/V/D/G/A | Flechas=1px Shift+10px | Alt+Drag=Pan Scroll=Zoom
+## Install
+```bash
+python -m venv venv
+venv\Scripts\pip install flask pillow "qrcode[pil]" pywebview "rembg[cpu]"
+python setup_fonts.py
+```
