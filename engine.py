@@ -787,6 +787,13 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
                 elif clip == "ellipse":
                     md.ellipse([0, 0, w, h], fill=255)
                 src_img.putalpha(mask)
+            # Blur para profundidad de campo
+            blur_r = float(el.get("blur", 0))
+            if blur_r > 0:
+                # Preservar alpha al aplicar blur
+                alpha_ch = src_img.split()[3]
+                src_img = src_img.filter(ImageFilter.GaussianBlur(radius=blur_r))
+                src_img.putalpha(alpha_ch)
             rot = float(el.get("rotate", 0))
             if rot:
                 src_img = src_img.rotate(-rot, expand=True, resample=Image.BICUBIC)
@@ -990,6 +997,47 @@ def generate_from_spec(spec):
     # Downscale si supersampling
     if ss > 1:
         img = img.resize((width, height), Image.LANCZOS)
+
+    # ── Post-processing ──────────────────────────────
+    post = spec.get("post", {})
+
+    # Vignette: oscurece bordes para foco central
+    if post.get("vignette"):
+        strength = float(post.get("vignette_strength", 0.4))
+        vig = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        vd = ImageDraw.Draw(vig)
+        import math
+        cx, cy = width // 2, height // 2
+        max_r = math.sqrt(cx**2 + cy**2)
+        steps = min(200, int(max_r // 3))
+        for i in range(steps, -1, -1):
+            t = i / steps
+            r = max_r * t
+            alpha = int(255 * strength * (1 - t) ** 2)
+            if r > 0:
+                vd.ellipse([cx-r, cy-r, cx+r, cy+r], fill=(0, 0, 0, alpha))
+        img = Image.alpha_composite(img, vig)
+
+    # Color grading: aplica tono unificado a toda la imagen
+    if post.get("tint"):
+        tint_color = parse_color(post["tint"])
+        tint_strength = float(post.get("tint_strength", 0.08))
+        tint_layer = Image.new("RGBA", (width, height),
+                               tint_color[:3] + (int(255 * tint_strength),))
+        img = Image.alpha_composite(img, tint_layer)
+
+    # Grain: textura de ruido sutil para unificar
+    if post.get("grain"):
+        import random
+        grain_strength = int(post.get("grain_strength", 8))
+        grain = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        pixels = []
+        for _ in range(width * height):
+            v = random.randint(-grain_strength, grain_strength)
+            a = abs(v) * 2
+            pixels.append((128 + v, 128 + v, 128 + v, a))
+        grain.putdata(pixels)
+        img = Image.alpha_composite(img, grain)
 
     return img
 
