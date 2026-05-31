@@ -287,8 +287,8 @@ def _multi_stop_color(stops, t):
     return stops[-1][1]
 
 
-def make_gradient(w, h, c1, c2, direction="horizontal", stops=None):
-    """Gradiente lineal/radial/diagonal. Soporta multi-stop con 'stops'."""
+def make_gradient(w, h, c1, c2, direction="horizontal", stops=None, angle=None):
+    """Gradiente lineal/radial/diagonal/angled. Soporta multi-stop con 'stops'."""
     w, h = max(1, int(w)), max(1, int(h))
     # Build stop list: [(0.0, color), ..., (1.0, color)]
     if stops:
@@ -323,6 +323,25 @@ def make_gradient(w, h, c1, c2, direction="horizontal", stops=None):
             r = maxR * t
             if r > 0:
                 draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=color_at(t))
+        return img
+    elif angle is not None:
+        # Gradiente con angulo libre (0=derecha, 90=abajo, etc)
+        import math
+        rad = math.radians(float(angle))
+        cos_a, sin_a = math.cos(rad), math.sin(rad)
+        # Calcular proyeccion maxima para normalizar t
+        corners = [(0, 0), (w, 0), (0, h), (w, h)]
+        projs = [x * cos_a + y * sin_a for x, y in corners]
+        min_p, max_p = min(projs), max(projs)
+        rng = max_p - min_p
+        img = Image.new("RGBA", (w, h))
+        pixels = []
+        for y in range(h):
+            for x in range(w):
+                proj = x * cos_a + y * sin_a
+                t = (proj - min_p) / max(rng, 1)
+                pixels.append(color_at(t))
+        img.putdata(pixels)
         return img
     else:  # diagonal - verdadero gradiente esquina a esquina
         total = w + h - 1
@@ -549,7 +568,8 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         c2 = parse_color(el.get("color2", "#ffffff"))
         direction = el.get("direction", "horizontal")
         stops = el.get("stops")  # [[0,"#c1"],[0.5,"#c2"],[1,"#c3"]]
-        grad = make_gradient(gw, gh, c1, c2, direction, stops=stops)
+        angle = el.get("angle")  # angulo libre en grados
+        grad = make_gradient(gw, gh, c1, c2, direction, stops=stops, angle=angle)
         if opacity_factor < 1.0:
             a = grad.split()[3].point(lambda p: int(p*opacity_factor))
             grad.putalpha(a)
@@ -585,22 +605,79 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
             img.paste(src_img, (x, y), src_img)
 
 
+def _draw_element_shadow(img, el):
+    """Dibuja sombra para formas (rect, circle, ellipse, pill). Text maneja su propia sombra."""
+    etype = el.get("type", "")
+    if etype in ("text", "gradient", "line", "image"):
+        return  # text maneja su propia sombra
+
+    shadow = el.get("shadow")
+    if not shadow:
+        return
+
+    sh_color = parse_color(el.get("shadow_color", "#00000040"))
+    sh_x = int(el.get("shadow_x", 4))
+    sh_y = int(el.get("shadow_y", 4))
+    sh_blur = int(el.get("shadow_blur", 12))
+
+    # Crear copia del elemento desplazada para la sombra
+    shadow_el = dict(el)
+    shadow_el.pop("shadow", None)
+    shadow_el.pop("shadow_color", None)
+    shadow_el.pop("shadow_x", None)
+    shadow_el.pop("shadow_y", None)
+    shadow_el.pop("shadow_blur", None)
+    shadow_el.pop("stroke", None)
+    shadow_el.pop("stroke_width", None)
+    shadow_el.pop("opacity", None)
+    shadow_el.pop("rotate", None)
+    shadow_el["color"] = "#000000"
+
+    # Desplazar posicion
+    if "x" in shadow_el:
+        shadow_el["x"] = int(shadow_el["x"]) + sh_x
+    if "y" in shadow_el:
+        shadow_el["y"] = int(shadow_el["y"]) + sh_y
+
+    # Renderizar sombra en capa separada
+    layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ld = ImageDraw.Draw(layer)
+    _apply_element(layer, ld, shadow_el, opacity_factor=1.0)
+
+    # Aplicar color de sombra (reemplazar negro con sh_color)
+    r, g, b, a = layer.split()
+    colored = Image.new("RGBA", img.size, sh_color[:3])
+    colored.putalpha(a)
+
+    # Blur
+    if sh_blur > 0:
+        colored = colored.filter(ImageFilter.GaussianBlur(radius=sh_blur))
+
+    img.paste(colored, (0, 0), colored)
+
+
 def draw_element(img, draw, el):
     opacity = float(el.get("opacity", 1.0))
     if opacity <= 0:
         return draw
 
-    # Rotacion a nivel de elemento (excepto gradient/text/image que manejan propio)
-    rotate = float(el.get("rotate", 0))
     etype = el.get("type", "")
+    rotate = float(el.get("rotate", 0))
+
+    # Sombra universal (antes del elemento)
+    if el.get("shadow") and etype not in ("text", "gradient", "image"):
+        _draw_element_shadow(img, el)
+        draw = ImageDraw.Draw(img)
+
+    # Rotacion a nivel de elemento
     if rotate and etype not in ("gradient", "text", "image", "pill"):
         layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         layer_draw = ImageDraw.Draw(layer)
         el_copy = dict(el)
         el_copy.pop("rotate", None)
         el_copy.pop("opacity", None)
+        el_copy.pop("shadow", None)
         _apply_element(layer, layer_draw, el_copy, opacity_factor=opacity)
-        # Rotar alrededor del centro del elemento
         cx = int(el.get("x", 0)) + int(el.get("w", el.get("r", 50))) // 2
         cy = int(el.get("y", 0)) + int(el.get("h", el.get("r", 50))) // 2
         layer = layer.rotate(-rotate, center=(cx, cy), resample=Image.BICUBIC)
@@ -608,14 +685,14 @@ def draw_element(img, draw, el):
         return ImageDraw.Draw(img)
 
     if opacity < 1.0 and etype not in ("gradient", "image"):
-        layer = Image.new("RGBA", img.size, (0,0,0,0))
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
         ld = ImageDraw.Draw(layer)
-        _apply_element(img, ld, el, opacity_factor=opacity)
-        img.paste(layer, (0,0), layer)
+        _apply_element(layer, ld, el, opacity_factor=opacity)
+        img.paste(layer, (0, 0), layer)
     else:
         _apply_element(img, draw, el, opacity_factor=opacity)
 
-    return ImageDraw.Draw(img)  # draw might be invalidated after paste
+    return ImageDraw.Draw(img)
 
 
 # ------------------------------------------------------------------ #

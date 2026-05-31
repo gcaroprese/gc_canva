@@ -38,17 +38,35 @@ JSON spec compacto → imagen server-side de alta calidad. Bajo consumo de token
 
 | Tipo | Props |
 |------|-------|
-| rect | x,y,w,h,color,radius,opacity,stroke,stroke_width,**rotate** |
-| circle | x,y,r,color,opacity |
-| ellipse | x,y,w,h,color,opacity |
-| triangle | x,y,w,h,color,**rotate** |
-| polygon | x,y,r,sides,angle,color,**rotate** |
-| star | x,y,r,inner_r,points,color,**rotate** |
+| rect | x,y,w,h,color,radius,opacity,stroke,stroke_width,rotate,**shadow**,shadow_color,shadow_blur,shadow_x,shadow_y |
+| circle | x,y,r,color,opacity,**shadow**,shadow_color,shadow_blur |
+| ellipse | x,y,w,h,color,opacity,**shadow** |
+| triangle | x,y,w,h,color,rotate |
+| polygon | x,y,r,sides,angle,color,rotate |
+| star | x,y,r,inner_r,points,color,rotate,**shadow** |
 | line | x1,y1,x2,y2,color,width |
-| gradient | x,y,w,h,color1,color2,direction,**stops** |
-| **pill** | x,y,text,color,text_color,size,font,padding_x,padding_y,radius,align |
-| text | x,y,text,size,color,font,bold,italic,align,**valign**,shadow,shadow_blur,text_stroke,**max_width**,**bg_color**,bg_padding,bg_radius,spacing |
-| image | src(base64 o path local),x,y,w,h,**rotate** |
+| gradient | x,y,w,h,color1,color2,direction,stops,**angle** |
+| pill | x,y,text,color,text_color,size,font,px,py,radius,align,**shadow** |
+| text | x,y,text,size,color,font,bold,italic,align,valign,shadow,shadow_blur,text_stroke,max_width,bg_color,bg_padding,bg_radius,spacing |
+| image | src(base64 o path local),x,y,w,h,rotate |
+
+### Shadow universal
+
+Todas las formas aceptan shadow:
+```json
+{"type":"rect","x":60,"y":80,"w":320,"h":200,"color":"#1a1a30","radius":16,
+ "shadow":true,"shadow_color":"#00000060","shadow_blur":20,"shadow_x":0,"shadow_y":8}
+```
+Para efecto glow usar shadow_color con el color del acento: `"shadow_color":"#7c6bf540"`
+
+### Gradiente con angulo
+
+```json
+{"type":"gradient","x":0,"y":0,"w":1200,"h":630,
+ "stops":[[0,"cyan"],[0.33,"blue"],[0.66,"purple"],[1,"pink"]],
+ "angle":135}
+```
+Angulo en grados (0=derecha, 90=abajo, 135=diagonal inferior-derecha). Compatible con multi-stop.
 
 ### Gradientes multi-stop
 
