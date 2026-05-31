@@ -94,6 +94,23 @@ Valores de clip: `circle`, `rounded` (+ `clip_radius`), `ellipse`
 ```
 `center_x` y `center_y` auto-calculan x/y para centrar el elemento en el canvas.
 
+### Grid layout
+
+```json
+{"type":"grid","x":50,"y":50,"cols":4,"rows":1,"gap":20,"item_w":260,"item_h":140,
+ "template":{"type":"rect","color":"#14142a","radius":14,"shadow":true},
+ "items":[{"color":"#14142a"},{"color":"#1a1a30"}]}
+```
+Genera N elementos en grilla. `template` define la forma base, `items` override por posicion.
+
+### Repeat
+
+```json
+{"type":"repeat","count":6,"dx":60,"dy":0,"d_opacity":-0.15,
+ "element":{"type":"circle","x":100,"y":300,"r":20,"color":"accent","opacity":0.9}}
+```
+Repite un elemento N veces con offset incremental. `d_opacity` y `d_scale` para degradado.
+
 ### Gradientes multi-stop
 
 ```json

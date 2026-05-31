@@ -781,13 +781,64 @@ def generate_from_spec(spec):
 
     for el in spec.get("elements", []):
         try:
-            # Convenience: center_x / center_y auto-centran el elemento
+            etype = el.get("type", "")
+
+            # ── Meta: grid ──────────────────────────────
+            # Repite un template de elemento en grilla NxM
+            if etype == "grid":
+                cols = int(el.get("cols", 3))
+                rows = int(el.get("rows", 1))
+                x0 = int(el.get("x", 0))
+                y0 = int(el.get("y", 0))
+                gap_x = int(el.get("gap_x", el.get("gap", 10)))
+                gap_y = int(el.get("gap_y", el.get("gap", 10)))
+                items = el.get("items", [])
+                item_w = int(el.get("item_w", 100))
+                item_h = int(el.get("item_h", 100))
+                template = el.get("template", {})
+                idx = 0
+                for row in range(rows):
+                    for col in range(cols):
+                        child = dict(template)
+                        child["x"] = x0 + col * (item_w + gap_x)
+                        child["y"] = y0 + row * (item_h + gap_y)
+                        child["w"] = item_w
+                        child["h"] = item_h
+                        # Override con item-specific props si hay items
+                        if idx < len(items):
+                            child.update(items[idx])
+                        draw = draw_element(img, draw, child)
+                        idx += 1
+                continue
+
+            # ── Meta: repeat ────────────────────────────
+            # Repite un elemento N veces con offset incremental
+            if etype == "repeat":
+                count = int(el.get("count", 5))
+                dx = int(el.get("dx", 0))
+                dy = int(el.get("dy", 0))
+                d_opacity = float(el.get("d_opacity", 0))
+                d_scale = float(el.get("d_scale", 0))
+                child_tpl = el.get("element", {})
+                for i in range(count):
+                    child = dict(child_tpl)
+                    child["x"] = int(child.get("x", 0)) + dx * i
+                    child["y"] = int(child.get("y", 0)) + dy * i
+                    if d_opacity:
+                        child["opacity"] = max(0, min(1, float(child.get("opacity", 1)) + d_opacity * i))
+                    if d_scale and "r" in child:
+                        child["r"] = max(1, int(int(child["r"]) + d_scale * i))
+                    draw = draw_element(img, draw, child)
+                continue
+
+            # ── Convenience: center_x / center_y ────────
             if el.get("center_x"):
                 ew = int(el.get("w", el.get("r", 0)) * 2 if el.get("r") else el.get("w", 0))
                 el["x"] = (width - ew) // 2
             if el.get("center_y"):
                 eh = int(el.get("h", el.get("r", 0)) * 2 if el.get("r") else el.get("h", 0))
                 el["y"] = (height - eh) // 2
+
             draw = draw_element(img, draw, el)
         except Exception as e:
             print(f"[engine] Error en elemento {el.get('type')}: {e}")
