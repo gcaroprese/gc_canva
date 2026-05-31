@@ -19,7 +19,7 @@ tests = {
     "02_pawsitive_blog": blog_photo_hero(
         title="5 Organic Teas\nYour Dog Will Love",
         subtitle="Natural blends safe and healthy for your pup",
-        accent="#8fbc8f", photo=os.path.join(A,"tea_herbs.jpg"),
+        accent="#8fbc8f", photo=os.path.join(A,"tea_dark_bg.jpg"),
         brand="pawsitivebrews.com"),
 
     "03_gabriel_blog": blog_dark_split(

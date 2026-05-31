@@ -68,25 +68,27 @@ def blog_photo_hero(title="Title", subtitle="Subtitle", accent="#c8956c",
     elements = []
     # Foto de fondo completa
     if photo and os.path.exists(photo):
-        elements.append({"type":"image","src":photo,"x":0,"y":0,"w":w,"h":h,"opacity":0.35})
-    # Overlay oscuro para legibilidad
+        elements.append({"type":"image","src":photo,"x":0,"y":0,"w":w,"h":h,"opacity":0.25})
+    # Overlay oscuro fuerte para legibilidad
     elements += [
         {"type":"gradient","x":0,"y":0,"w":w,"h":h,
-         "stops":[[0,"#000000CC"],[0.4,"#000000AA"],[1,"#00000088"]],"direction":"vertical"},
+         "stops":[[0,"#000000E0"],[0.3,"#000000CC"],[0.7,"#000000BB"],[1,"#000000DD"]],"direction":"vertical"},
         {"type":"rect","x":0,"y":0,"w":w,"h":3,"color":accent},
-        # Titulo centrado
-        {"type":"text","text":title,"x":w//2,"y":h//3,"size":min(72, w//15),"color":"#ffffff","align":"center","valign":"center",
-         "bold":True,"font":"mukta","shadow":True,"shadow_blur":12,"max_width":w*3//4},
+        # Titulo centrado con shadow fuerte
+        {"type":"text","text":title,"x":w//2,"y":int(h*0.33),"size":min(72, w//15),"color":"#ffffff","align":"center","valign":"center",
+         "bold":True,"font":"mukta","shadow":True,"shadow_blur":16,"shadow_color":"#000000CC","max_width":w*3//4},
         # Separador centrado
-        {"type":"rect","x":w//2-60,"y":h//2+20,"w":120,"h":3,"color":accent},
+        {"type":"rect","x":w//2-60,"y":int(h*0.52),"w":120,"h":3,"color":accent},
         # Subtitulo
-        {"type":"text","text":subtitle,"x":w//2,"y":h//2+60,"size":20,"color":"#cccccc","align":"center","font":"segoe ui","max_width":w*2//3},
-        # Brand
-        {"type":"text","text":brand,"x":w//2,"y":h-40,"size":14,"color":"#888888","align":"center","font":"consolas"},
+        {"type":"text","text":subtitle,"x":w//2,"y":int(h*0.58),"size":20,"color":"#dddddd","align":"center","font":"segoe ui",
+         "shadow":True,"shadow_blur":6,"shadow_color":"#00000080","max_width":w*2//3},
+        # Brand con fondo
+        {"type":"text","text":brand,"x":w//2,"y":h-45,"size":15,"color":"#aaaaaa","align":"center","font":"consolas",
+         "bg_color":"#00000060","bg_padding":8,"bg_radius":6},
         {"type":"rect","x":0,"y":h-2,"w":w,"h":2,"color":accent+"40"},
     ]
     return {"width":w,"height":h,"background":"#000000","antialias":2,
-            "post":{"vignette":True,"vignette_strength":0.4,"grain":True,"grain_strength":4},
+            "post":{"vignette":True,"vignette_strength":0.45,"grain":True,"grain_strength":4},
             "elements":elements}
 
 
