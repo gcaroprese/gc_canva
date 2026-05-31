@@ -715,6 +715,23 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
             grad.putalpha(a)
         img.paste(grad, (gx, gy), grad)
 
+    elif etype == "asset":
+        # Shortcut para cargar assets del proyecto: {"type":"asset","name":"coffee_cup","x":100,"y":100,"w":300}
+        name = el.get("name", "")
+        asset_dir = os.path.join(PROJECT_ROOT, "static", "assets", "images")
+        # Buscar en orden: .webp, .png
+        src_path = None
+        for ext in [".webp", ".png", ".jpg"]:
+            p = os.path.join(asset_dir, name + ext)
+            if os.path.exists(p):
+                src_path = p
+                break
+        if src_path:
+            el_copy = dict(el)
+            el_copy["type"] = "image"
+            el_copy["src"] = src_path
+            _apply_element(img, draw, el_copy, opacity_factor)
+
     elif etype == "image":
         src = el.get("src", "")
         src_img = None
