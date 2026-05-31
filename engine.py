@@ -221,10 +221,22 @@ def list_available_fonts():
 # COLORES                                                             #
 # ------------------------------------------------------------------ #
 
+NAMED_COLORS = {
+    "white":"#ffffff","black":"#000000","red":"#ef4444","green":"#22c55e",
+    "blue":"#3b82f6","yellow":"#eab308","orange":"#f97316","purple":"#a855f7",
+    "pink":"#ec4899","gray":"#6b7280","grey":"#6b7280","gold":"#c9a227",
+    "silver":"#9ca3af","brown":"#92400e","navy":"#1e3a5f","teal":"#14b8a6",
+    "cyan":"#06b6d4","lime":"#84cc16","indigo":"#6366f1","violet":"#8b5cf6",
+    "accent":"#7c6bf5","dark":"#0c0c14","light":"#f8f9fa",
+    "transparent":"#00000000",
+}
+
 def parse_color(color, default=(0, 0, 0, 255)):
     if not color:
         return default
-    c = str(color).strip()
+    c = str(color).strip().lower()
+    if c in NAMED_COLORS:
+        c = NAMED_COLORS[c]
     if c.startswith('#'):
         h = c.lstrip('#')
         try:
@@ -281,7 +293,7 @@ def make_gradient(w, h, c1, c2, direction="horizontal"):
         draw = ImageDraw.Draw(img)
         cx, cy = w / 2, h / 2
         maxR = math.sqrt(cx ** 2 + cy ** 2)
-        steps = min(256, max(60, int(maxR / 3)))
+        steps = min(512, max(100, int(maxR / 2)))
         for i in range(steps, -1, -1):
             t = i / steps
             r = maxR * t
@@ -289,22 +301,19 @@ def make_gradient(w, h, c1, c2, direction="horizontal"):
             if r > 0:
                 draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col)
         return img
-    else:  # diagonal
-        base = Image.new("RGBA", (w, 1))
-        d = ImageDraw.Draw(base)
-        for x in range(w):
-            t = x / max(w-1, 1)
-            col = tuple(int(c1[i]*(1-t) + c2[i]*t) for i in range(4))
-            d.point((x, 0), fill=col)
-        vert_base = Image.new("RGBA", (1, h))
-        dv = ImageDraw.Draw(vert_base)
+    else:  # diagonal - verdadero gradiente esquina a esquina
+        total = w + h - 1
+        colors = []
+        for i in range(total):
+            t = i / max(total - 1, 1)
+            colors.append(tuple(int(c1[j] * (1 - t) + c2[j] * t) for j in range(4)))
+        img = Image.new("RGBA", (w, h))
+        pixels = []
         for y in range(h):
-            t = y / max(h-1, 1)
-            col = tuple(int(c1[i]*(1-t) + c2[i]*t) for i in range(4))
-            dv.point((0, y), fill=col)
-        h_scaled = base.resize((w, h), Image.NEAREST)
-        v_scaled = vert_base.resize((w, h), Image.NEAREST)
-        return Image.blend(h_scaled, v_scaled, 0.5)
+            for x in range(w):
+                pixels.append(colors[x + y])
+        img.putdata(pixels)
+        return img
 
 
 # ------------------------------------------------------------------ #
@@ -395,6 +404,28 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         w_    = int(el.get("width", el.get("stroke_width", 2)))
         draw.line([(x1,y1),(x2,y2)], fill=col, width=w_)
 
+    elif etype == "pill":
+        # Pill/badge: rect redondeado con texto centrado adentro (ahorra tokens)
+        x, y = int(el.get("x", 0)), int(el.get("y", 0))
+        text = str(el.get("text", ""))
+        size = int(el.get("size", el.get("fontSize", 16)))
+        bg = c("color", "#7c6bf5")
+        tc = parse_color(el.get("text_color", "#ffffff"))
+        font_name = el.get("font", el.get("fontFamily", "segoe ui"))
+        bold = el.get("bold", True)
+        font = get_font(font_name, size, bold)
+        pad_x = int(el.get("padding_x", el.get("px", 20)))
+        pad_y = int(el.get("padding_y", el.get("py", 8)))
+        bbox = draw.textbbox((0, 0), text, font=font)
+        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        pw, ph = tw + pad_x * 2, th + pad_y * 2
+        radius = int(el.get("radius", ph // 2))
+        # Si align=center, centrar el pill en x
+        pill_x = x - pw // 2 if el.get("align") == "center" else x
+        pill_y = y
+        draw_rounded_rect(draw, pill_x, pill_y, pw, ph, radius, bg)
+        draw.text((pill_x + pad_x, pill_y + pad_y), text, font=font, fill=tc)
+
     elif etype == "text":
         text = str(el.get("text",""))
         if not text: return
@@ -432,6 +463,11 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
 
+        # Background color behind text (highlight)
+        bg_color = el.get("bg_color")
+        bg_pad = int(el.get("bg_padding", 6))
+        bg_radius = int(el.get("bg_radius", 4))
+
         # Offset X segun alineacion horizontal
         draw_x = x
         if align == "center":
@@ -445,6 +481,15 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
             draw_y = y - th // 2
         elif valign == "bottom":
             draw_y = y - th
+
+        # Dibujar background highlight si se especifica
+        if bg_color:
+            bg_fill = parse_color(bg_color)
+            if opacity_factor < 1.0:
+                bg_fill = bg_fill[:3] + (int(bg_fill[3] * opacity_factor),)
+            draw_rounded_rect(draw, draw_x - bg_pad, draw_y - bg_pad,
+                              tw + bg_pad * 2, th + bg_pad * 2,
+                              bg_radius, bg_fill)
 
         # Shadow
         if el.get("shadow"):
