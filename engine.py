@@ -886,13 +886,37 @@ def draw_element(img, draw, el):
 # ------------------------------------------------------------------ #
 
 def generate_from_spec(spec):
-    """Genera imagen PIL de alta calidad desde JSON spec."""
+    """Genera imagen PIL de alta calidad desde JSON spec.
+    Soporta supersampling global con 'antialias': 2 (render a 2x y downscale).
+    """
     width  = max(1, int(spec.get("width",  800)))
     height = max(1, int(spec.get("height", 600)))
     bg_raw = spec.get("background", "#ffffff")
+    ss = max(1, int(spec.get("antialias", 1)))  # 1=normal, 2=supersampled
 
-    img  = Image.new("RGBA", (width, height), parse_color(bg_raw, (255,255,255,255)))
+    render_w, render_h = width * ss, height * ss
+    img  = Image.new("RGBA", (render_w, render_h), parse_color(bg_raw, (255,255,255,255)))
     draw = ImageDraw.Draw(img)
+
+    # Si supersampling, escalar todas las coordenadas y tamaños
+    def scale_el(el):
+        if ss == 1:
+            return el
+        scaled = dict(el)
+        for k in ["x","y","w","h","r","x1","y1","x2","y2","size","fontSize",
+                   "radius","rx","stroke_width","strokeWidth","width","thickness",
+                   "padding_x","padding_y","px","py","shadow_x","shadow_y","shadow_blur",
+                   "bg_padding","bg_radius","inner_r","letter_spacing","max_width",
+                   "clip_radius","item_w","item_h","gap","gap_x","gap_y"]:
+            if k in scaled:
+                scaled[k] = int(float(scaled[k]) * ss)
+        if "line_spacing" in scaled:
+            scaled["line_spacing"] = int(float(scaled["line_spacing"]) * ss)
+        if "spacing" in scaled and isinstance(scaled["spacing"], (int, float)):
+            scaled["spacing"] = int(float(scaled["spacing"]) * ss)
+        # Escalar stops de gradiente (no posiciones, solo colores)
+        # Escalar text_gradient sizes si los tiene
+        return scaled
 
     for el in spec.get("elements", []):
         try:
@@ -954,9 +978,13 @@ def generate_from_spec(spec):
                 eh = int(el.get("h", el.get("r", 0)) * 2 if el.get("r") else el.get("h", 0))
                 el["y"] = (height - eh) // 2
 
-            draw = draw_element(img, draw, el)
+            draw = draw_element(img, draw, scale_el(el))
         except Exception as e:
             print(f"[engine] Error en elemento {el.get('type')}: {e}")
+
+    # Downscale si supersampling
+    if ss > 1:
+        img = img.resize((width, height), Image.LANCZOS)
 
     return img
 
