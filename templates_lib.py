@@ -68,11 +68,11 @@ def blog_photo_hero(title="Title", subtitle="Subtitle", accent="#c8956c",
     elements = []
     # Foto de fondo completa
     if photo and os.path.exists(photo):
-        elements.append({"type":"image","src":photo,"x":0,"y":0,"w":w,"h":h,"opacity":0.25})
-    # Overlay oscuro fuerte para legibilidad
+        elements.append({"type":"image","src":photo,"x":0,"y":0,"w":w,"h":h,"opacity":0.35})
+    # Overlay oscuro para legibilidad pero no excesivo
     elements += [
         {"type":"gradient","x":0,"y":0,"w":w,"h":h,
-         "stops":[[0,"#000000E0"],[0.3,"#000000CC"],[0.7,"#000000BB"],[1,"#000000DD"]],"direction":"vertical"},
+         "stops":[[0,"#000000CC"],[0.3,"#000000B0"],[0.7,"#000000A0"],[1,"#000000CC"]],"direction":"vertical"},
         {"type":"rect","x":0,"y":0,"w":w,"h":3,"color":accent},
         # Titulo centrado con shadow fuerte
         {"type":"text","text":title,"x":w//2,"y":int(h*0.33),"size":min(72, w//15),"color":"#ffffff","align":"center","valign":"center",
@@ -197,10 +197,10 @@ def church_post(title="Title", verse="", reference="", accent="#c9a227",
     """Post de iglesia - elegante, oscuro, espiritual."""
     elements = [
         {"type":"gradient","x":0,"y":0,"w":w,"h":h,
-         "stops":[[0,"#1a1200"],[0.3,"#0a0800"],[0.7,"#050400"],[1,"#020200"]],"direction":"radial"},
+         "stops":[[0,"#2a2000"],[0.3,"#141000"],[0.7,"#0a0800"],[1,"#050400"]],"direction":"radial"},
     ]
     if bg_photo and os.path.exists(bg_photo):
-        elements.append({"type":"image","src":bg_photo,"x":0,"y":0,"w":w,"h":h,"opacity":0.1})
+        elements.append({"type":"image","src":bg_photo,"x":0,"y":0,"w":w,"h":h,"opacity":0.18})
     elements += [
         # Cruz dorada
         {"type":"rect","x":w//2-3,"y":int(h*0.08),"w":6,"h":int(h*0.15),"color":accent},
@@ -227,7 +227,7 @@ def etsy_listing(title_lines=None, price="$24.99", accent="#8b4513",
         title_lines = ["BEST", "DOG MOM", "EVER"]
     elements = [
         {"type":"gradient","x":0,"y":0,"w":w,"h":h,
-         "stops":[[0,"#fdf9f3"],[0.5,"#f5ece0"],[1,"#ebe0d0"]],"direction":"radial"},
+         "stops":[[0,"#f5efe5"],[0.5,"#ebe0d0"],[1,"#ddd0c0"]],"direction":"radial"},
         {"type":"circle","x":w//2,"y":int(h*0.35),"r":int(w*0.35),"color":accent,"opacity":0.04},
     ]
     if product_image and os.path.exists(product_image):
