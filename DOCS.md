@@ -3,7 +3,7 @@
 ## Inicio rapido
 
 ```bash
-# Ventana nativa (recomendado)
+# Ventana nativa
 start.bat
 
 # En browser
@@ -14,70 +14,100 @@ venv\Scripts\python app.py
 ## Dos modos de uso
 
 ### 1. Editor Visual (Fabric.js)
-Canvas interactivo con herramientas de dibujo, texto, formas, iconos.
-Export client-side en WebP/PNG/JPG.
+Canvas interactivo: seleccionar, texto, rect, circulo, triangulo, linea, flecha, estrella, poligono, diamante. Panel de propiedades, iconos SVG, backgrounds, exportacion.
 
 ### 2. Claude JSON Mode (Pillow)
-JSON spec compacto → imagen renderizada server-side con alta calidad.
-Baja tokens. 84 fuentes. Sombras, gradientes, opacidades.
+JSON spec compacto → imagen server-side de alta calidad. Bajo consumo de tokens. 84 fuentes. Sombras con blur, gradientes multi-stop, opacidades, rotacion.
 
-## JSON Spec - Referencia Completa
+## JSON Spec - Referencia
 
 ```json
 {
   "width": 1200, "height": 630,
-  "background": "#1a1a2e",
+  "background": "dark",
   "format": "webp", "quality": 92,
-  "filename": "mi-diseno",
   "elements": [
-    {"type":"gradient","x":0,"y":0,"w":1200,"h":630,"color1":"#6366f1","color2":"#1a1a2e","direction":"diagonal"},
-    {"type":"rect","x":40,"y":40,"w":400,"h":300,"color":"#7c6bf5","opacity":0.08,"radius":20},
-    {"type":"text","text":"Titulo","x":600,"y":280,"size":72,"color":"#fff","align":"center","bold":true,"font":"roboto slab","shadow":true,"shadow_blur":8}
+    {"type":"gradient","x":0,"y":0,"w":1200,"h":630,"color1":"accent","color2":"dark","direction":"diagonal"},
+    {"type":"pill","x":60,"y":60,"text":"NUEVO","color":"accent"},
+    {"type":"text","text":"Titulo","x":600,"y":280,"size":72,"color":"white","align":"center","bold":true,"font":"mukta","shadow":true,"shadow_blur":8}
   ]
 }
 ```
 
 ### Elementos
 
-| Tipo | Props principales |
-|------|-------------------|
-| rect | x,y,w,h,color,radius,opacity,stroke,stroke_width |
+| Tipo | Props |
+|------|-------|
+| rect | x,y,w,h,color,radius,opacity,stroke,stroke_width,**rotate** |
 | circle | x,y,r,color,opacity |
 | ellipse | x,y,w,h,color,opacity |
-| triangle | x,y,w,h,color |
-| polygon | x,y,r,sides,angle,color |
-| star | x,y,r,inner_r,points,color |
+| triangle | x,y,w,h,color,**rotate** |
+| polygon | x,y,r,sides,angle,color,**rotate** |
+| star | x,y,r,inner_r,points,color,**rotate** |
 | line | x1,y1,x2,y2,color,width |
-| gradient | x,y,w,h,color1,color2,direction(horizontal/vertical/diagonal/radial) |
-| text | x,y,text,size,color,font,bold,italic,align(left/center/right),valign(top/center/bottom),shadow,shadow_blur,text_stroke,max_width,spacing |
-| image | src(data:base64),x,y,w,h |
+| gradient | x,y,w,h,color1,color2,direction,**stops** |
+| **pill** | x,y,text,color,text_color,size,font,padding_x,padding_y,radius,align |
+| text | x,y,text,size,color,font,bold,italic,align,**valign**,shadow,shadow_blur,text_stroke,**max_width**,**bg_color**,bg_padding,bg_radius,spacing |
+| image | src(base64 o path local),x,y,w,h,**rotate** |
 
-### Fuentes (claves para `font`)
+### Gradientes multi-stop
+
+```json
+{"type":"gradient","x":0,"y":0,"w":1200,"h":630,
+ "stops":[[0,"#0f0524"],[0.4,"#1e1b4b"],[0.7,"#312e81"],[1,"#1e1b4b"]],
+ "direction":"diagonal"}
+```
+Direcciones: horizontal, vertical, diagonal, radial. Soporta 2+ colores con posiciones 0.0-1.0.
+
+### Pill / Badge
+
+```json
+{"type":"pill","x":60,"y":60,"text":"NUEVO","color":"accent","text_color":"white","size":14,"font":"bahnschrift"}
+```
+Auto-sizing: calcula ancho segun texto. Padding y radio configurables.
+
+### Text features
+
+```json
+{"type":"text","text":"Titulo","x":600,"y":300,"size":72,"color":"white",
+ "align":"center","valign":"center",
+ "shadow":true,"shadow_blur":12,"shadow_color":"#7c6bf540",
+ "bg_color":"#7c6bf530","bg_padding":8,"bg_radius":6,
+ "max_width":500,
+ "text_stroke":true,"text_stroke_color":"accent","text_stroke_width":2}
+```
+
+### Rotacion
+
+Cualquier forma acepta `"rotate": 15` (grados). Se rota alrededor del centro del elemento.
+
+### Colores con nombre
+
+white, black, red, green, blue, yellow, orange, purple, pink, gold, silver, brown, navy, teal, cyan, lime, indigo, violet, accent(#7c6bf5), dark(#0c0c14), light(#f8f9fa), transparent
+
+### Fuentes
 
 **Sans:** arial, calibri, mukta, segoe ui, tahoma, verdana, bahnschrift, candara, corbel, trebuchet ms
 **Serif:** georgia, times, roboto slab, optimus princeps, rockwell
 **Display:** impact, cooper black, moon bold, moon light, narnia, rakoon
 **Mono:** consolas, courier new
-**Decorativa:** gabriola, bananas
-
-### Colores
-`#ff0000`, `#f00`, `#ff000080` (hex+alpha), `rgb(255,0,0)`, `rgba(255,0,0,0.5)`
+**Script:** gabriola
 
 ## API
 
 | Ruta | Metodo | Uso |
 |------|--------|-----|
-| /api/preview | POST | Preview base64 desde JSON |
-| /api/download | POST | Descarga imagen desde JSON |
-| /api/qr | POST | Genera QR (text,size,color,bg_color) |
-| /api/remove-bg | POST | Quita fondo (requiere rembg) |
-| /api/filter | POST | Filtros: brightness,contrast,saturation,blur,grayscale,sepia |
-| /api/fonts | GET | Lista fuentes |
+| /api/preview | POST | Preview base64 desde JSON spec |
+| /api/download | POST | Descarga imagen desde JSON spec |
+| /api/qr | POST | QR code (text,size,color,bg_color) |
+| /api/remove-bg | POST | Quitar fondo (requiere rembg) |
+| /api/filter | POST | Filtros (brightness,contrast,saturation,blur,grayscale,sepia) |
+| /api/fonts | GET | Fuentes disponibles |
 | /api/presets | GET | Presets de canvas |
 
 ## Presets (32)
 
-Social, Video, Presentacion, Web, Print, Etsy, Blog, Email
+Social (Post, Story, Twitter, Facebook, LinkedIn, Pinterest), Video (TikTok, YouTube, Shorts), Presentacion (16:9, 4:3), Web (OG, Banners, Hero), Print (Tarjeta, Flyer, A4), Etsy, Blog, Email
 
 ## Plantillas AI (12)
 
@@ -85,18 +115,19 @@ Social Elegante, YouTube Thumb, Blog Inforket, Blog Gabriel, Hatton Naturals, Pa
 
 ## Shortcuts
 
-V=Select, T=Texto, R=Rect, C=Circulo, L=Linea, Del=Borrar
-Ctrl+Z/Y=Undo/Redo, Ctrl+C/V=Copy/Paste, Ctrl+D=Duplicar, Ctrl+G=Agrupar
-Flechas=Mover 1px, Shift+Flechas=10px, Alt+Drag=Pan, Scroll=Zoom
+V=Select T=Texto R=Rect C=Circulo L=Linea Del=Borrar
+Ctrl+Z/Y Ctrl+C/V Ctrl+D Ctrl+G Ctrl+A
+Flechas=1px Shift+Flechas=10px Alt+Drag=Pan Scroll=Zoom
 
 ## Performance
 
-Promedio: 236ms generacion + 650ms export. WebP q92 ~47KB por imagen.
-WebP es ~50% mas chico que PNG y ~40% mas chico que JPG con calidad identica.
+~250ms generacion, ~650ms export WebP. ~42KB promedio por imagen 1200x630.
+WebP q92: 50% menor que PNG, 40% menor que JPG, calidad identica.
 
 ## Instalacion
 
 ```bash
 python -m venv venv
 venv\Scripts\pip install flask pillow "qrcode[pil]" pywebview
+python setup_fonts.py  # copiar fuentes de Windows
 ```

@@ -268,28 +268,52 @@ def parse_color(color, default=(0, 0, 0, 255)):
 # GRADIENTES                                                           #
 # ------------------------------------------------------------------ #
 
-def make_gradient(w, h, c1, c2, direction="horizontal"):
-    """Gradiente lineal eficiente. c1/c2 son tuplas RGBA."""
+def _lerp_color(c1, c2, t):
+    return tuple(int(c1[i] * (1 - t) + c2[i] * t) for i in range(4))
+
+
+def _multi_stop_color(stops, t):
+    """Interpola color en gradiente multi-stop. stops = [(pos, color), ...]"""
+    if t <= stops[0][0]:
+        return stops[0][1]
+    if t >= stops[-1][0]:
+        return stops[-1][1]
+    for i in range(len(stops) - 1):
+        p0, c0 = stops[i]
+        p1, c1s = stops[i + 1]
+        if p0 <= t <= p1:
+            local_t = (t - p0) / max(p1 - p0, 0.001)
+            return _lerp_color(c0, c1s, local_t)
+    return stops[-1][1]
+
+
+def make_gradient(w, h, c1, c2, direction="horizontal", stops=None):
+    """Gradiente lineal/radial/diagonal. Soporta multi-stop con 'stops'."""
     w, h = max(1, int(w)), max(1, int(h))
+    # Build stop list: [(0.0, color), ..., (1.0, color)]
+    if stops:
+        stop_list = [(s[0], parse_color(s[1])) for s in stops]
+    else:
+        stop_list = [(0.0, c1), (1.0, c2)]
+
+    def color_at(t):
+        return _multi_stop_color(stop_list, t) if len(stop_list) > 2 else _lerp_color(c1, c2, t)
+
     if direction == "horizontal":
         base = Image.new("RGBA", (w, 1))
         d = ImageDraw.Draw(base)
         for x in range(w):
-            t = x / max(w-1, 1)
-            col = tuple(int(c1[i]*(1-t) + c2[i]*t) for i in range(4))
-            d.point((x, 0), fill=col)
+            d.point((x, 0), fill=color_at(x / max(w - 1, 1)))
         return base.resize((w, h), Image.NEAREST)
     elif direction == "vertical":
         base = Image.new("RGBA", (1, h))
         d = ImageDraw.Draw(base)
         for y in range(h):
-            t = y / max(h-1, 1)
-            col = tuple(int(c1[i]*(1-t) + c2[i]*t) for i in range(4))
-            d.point((0, y), fill=col)
+            d.point((0, y), fill=color_at(y / max(h - 1, 1)))
         return base.resize((w, h), Image.NEAREST)
     elif direction == "radial":
         import math
-        img = Image.new("RGBA", (w, h), c2)
+        img = Image.new("RGBA", (w, h), color_at(1.0))
         draw = ImageDraw.Draw(img)
         cx, cy = w / 2, h / 2
         maxR = math.sqrt(cx ** 2 + cy ** 2)
@@ -297,21 +321,14 @@ def make_gradient(w, h, c1, c2, direction="horizontal"):
         for i in range(steps, -1, -1):
             t = i / steps
             r = maxR * t
-            col = tuple(int(c1[j] * (1 - t) + c2[j] * t) for j in range(4))
             if r > 0:
-                draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col)
+                draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=color_at(t))
         return img
     else:  # diagonal - verdadero gradiente esquina a esquina
         total = w + h - 1
-        colors = []
-        for i in range(total):
-            t = i / max(total - 1, 1)
-            colors.append(tuple(int(c1[j] * (1 - t) + c2[j] * t) for j in range(4)))
+        colors = [color_at(i / max(total - 1, 1)) for i in range(total)]
         img = Image.new("RGBA", (w, h))
-        pixels = []
-        for y in range(h):
-            for x in range(w):
-                pixels.append(colors[x + y])
+        pixels = [colors[x + y] for y in range(h) for x in range(w)]
         img.putdata(pixels)
         return img
 
@@ -531,32 +548,41 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         c1 = parse_color(el.get("color1", "#000000"))
         c2 = parse_color(el.get("color2", "#ffffff"))
         direction = el.get("direction", "horizontal")
-        grad = make_gradient(gw, gh, c1, c2, direction)
+        stops = el.get("stops")  # [[0,"#c1"],[0.5,"#c2"],[1,"#c3"]]
+        grad = make_gradient(gw, gh, c1, c2, direction, stops=stops)
         if opacity_factor < 1.0:
             a = grad.split()[3].point(lambda p: int(p*opacity_factor))
             grad.putalpha(a)
         img.paste(grad, (gx, gy), grad)
 
     elif etype == "image":
-        # Embed external/base64 image into the spec (for server-side use)
         src = el.get("src", "")
+        src_img = None
         if src.startswith("data:"):
             import base64
-            header, b64data = src.split(",", 1)
-            raw = base64.b64decode(b64data)
             try:
-                src_img = Image.open(io.BytesIO(raw)).convert("RGBA")
-                x, y = int(el.get("x",0)), int(el.get("y",0))
-                w = int(el.get("w", src_img.width))
-                h = int(el.get("h", src_img.height))
-                if w != src_img.width or h != src_img.height:
-                    src_img = src_img.resize((w, h), Image.LANCZOS)
-                if opacity_factor < 1.0:
-                    alpha = src_img.split()[3].point(lambda p: int(p*opacity_factor))
-                    src_img.putalpha(alpha)
-                img.paste(src_img, (x, y), src_img)
+                _, b64data = src.split(",", 1)
+                src_img = Image.open(io.BytesIO(base64.b64decode(b64data))).convert("RGBA")
             except Exception as e:
-                print(f"[engine] Error cargando imagen embebida: {e}")
+                print(f"[engine] Error imagen base64: {e}")
+        elif src and os.path.exists(src):
+            try:
+                src_img = Image.open(src).convert("RGBA")
+            except Exception as e:
+                print(f"[engine] Error imagen local: {e}")
+        if src_img:
+            x, y = int(el.get("x", 0)), int(el.get("y", 0))
+            w = int(el.get("w", src_img.width))
+            h = int(el.get("h", src_img.height))
+            if w != src_img.width or h != src_img.height:
+                src_img = src_img.resize((w, h), Image.LANCZOS)
+            rot = float(el.get("rotate", 0))
+            if rot:
+                src_img = src_img.rotate(-rot, expand=True, resample=Image.BICUBIC)
+            if opacity_factor < 1.0:
+                alpha = src_img.split()[3].point(lambda p: int(p * opacity_factor))
+                src_img.putalpha(alpha)
+            img.paste(src_img, (x, y), src_img)
 
 
 def draw_element(img, draw, el):
@@ -564,7 +590,23 @@ def draw_element(img, draw, el):
     if opacity <= 0:
         return draw
 
-    etype = el.get("type","")
+    # Rotacion a nivel de elemento (excepto gradient/text/image que manejan propio)
+    rotate = float(el.get("rotate", 0))
+    etype = el.get("type", "")
+    if rotate and etype not in ("gradient", "text", "image", "pill"):
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        layer_draw = ImageDraw.Draw(layer)
+        el_copy = dict(el)
+        el_copy.pop("rotate", None)
+        el_copy.pop("opacity", None)
+        _apply_element(layer, layer_draw, el_copy, opacity_factor=opacity)
+        # Rotar alrededor del centro del elemento
+        cx = int(el.get("x", 0)) + int(el.get("w", el.get("r", 50))) // 2
+        cy = int(el.get("y", 0)) + int(el.get("h", el.get("r", 50))) // 2
+        layer = layer.rotate(-rotate, center=(cx, cy), resample=Image.BICUBIC)
+        img.paste(layer, (0, 0), layer)
+        return ImageDraw.Draw(img)
+
     if opacity < 1.0 and etype not in ("gradient", "image"):
         layer = Image.new("RGBA", img.size, (0,0,0,0))
         ld = ImageDraw.Draw(layer)
