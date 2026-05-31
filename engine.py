@@ -399,7 +399,47 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         fill   = c("color", "#cccccc")
         stroke = ci("stroke")
         sw     = int(el.get("stroke_width", 0))
-        draw.ellipse(box, fill=fill, outline=stroke, width=sw if stroke else 0)
+        # Anti-aliasing: render 2x y downscale para bordes suaves
+        aa = el.get("antialias", True)
+        if aa and etype == "circle":
+            ss = 2
+            aa_size = (r*2*ss, r*2*ss)
+            aa_img = Image.new("RGBA", aa_size, (0,0,0,0))
+            aa_d = ImageDraw.Draw(aa_img)
+            aa_d.ellipse([0, 0, aa_size[0]-1, aa_size[1]-1], fill=fill,
+                         outline=stroke, width=sw*ss if stroke else 0)
+            aa_img = aa_img.resize((r*2, r*2), Image.LANCZOS)
+            img.paste(aa_img, (x-r, y-r), aa_img)
+        else:
+            draw.ellipse(box, fill=fill, outline=stroke, width=sw if stroke else 0)
+
+    elif etype == "divider":
+        # Linea decorativa con label opcional (ahorra tokens)
+        x = int(el.get("x", 0))
+        y = int(el.get("y", 0))
+        w = int(el.get("w", img.width))
+        color = c("color", "#33334850")
+        thickness = int(el.get("thickness", 1))
+        label = el.get("text", "")
+        direction = el.get("direction", "horizontal")
+        if direction == "horizontal":
+            if label:
+                font_name = el.get("font", "segoe ui")
+                size = int(el.get("size", 12))
+                font = get_font(font_name, size)
+                lbox = draw.textbbox((0,0), label, font=font)
+                lw = lbox[2] - lbox[0]
+                gap = 16
+                mid = x + w // 2
+                draw.line([(x, y), (mid - lw//2 - gap, y)], fill=color, width=thickness)
+                draw.line([(mid + lw//2 + gap, y), (x + w, y)], fill=color, width=thickness)
+                tc = c("text_color", "#666666")
+                draw.text((mid - lw//2, y - size//2), label, font=font, fill=tc)
+            else:
+                draw.line([(x, y), (x + w, y)], fill=color, width=thickness)
+        else:  # vertical
+            h = int(el.get("h", img.height))
+            draw.line([(x, y), (x, y + h)], fill=color, width=thickness)
 
     elif etype == "triangle":
         x, y = int(el.get("x",0)), int(el.get("y",0))
