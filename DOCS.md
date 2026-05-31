@@ -39,7 +39,8 @@ JSON spec compacto → imagen server-side de alta calidad. Bajo consumo de token
 | Tipo | Props |
 |------|-------|
 | rect | x,y,w,h,color,radius,opacity,stroke,stroke_width,rotate,**shadow**,shadow_color,shadow_blur,shadow_x,shadow_y |
-| circle | x,y,r,color,opacity,**shadow**,shadow_color,shadow_blur |
+| circle | x,y,r,color,opacity,shadow,antialias(default true, 2x supersampled) |
+| divider | x,y,w,color,thickness,text,text_color,font,size,direction(horizontal/vertical) |
 | ellipse | x,y,w,h,color,opacity,**shadow** |
 | triangle | x,y,w,h,color,rotate |
 | polygon | x,y,r,sides,angle,color,rotate |
@@ -47,7 +48,7 @@ JSON spec compacto → imagen server-side de alta calidad. Bajo consumo de token
 | line | x1,y1,x2,y2,color,width |
 | gradient | x,y,w,h,color1,color2,direction,stops,**angle** |
 | pill | x,y,text,color,text_color,size,font,px,py,radius,align,**shadow** |
-| text | x,y,text,size,color,font,bold,italic,align,valign,shadow,shadow_blur,text_stroke,max_width,bg_color,bg_padding,bg_radius,spacing |
+| text | x,y,text,size,color,font,bold,italic,align,valign,shadow,shadow_blur,text_stroke,max_width,bg_color,bg_padding,bg_radius,spacing,**text_gradient** |
 | image | src(base64 o path local),x,y,w,h,rotate |
 
 ### Shadow universal
