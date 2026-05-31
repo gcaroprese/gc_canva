@@ -588,7 +588,7 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         # Gradient text o texto solido
         text_grad = el.get("text_gradient")
         if text_grad and isinstance(text_grad, dict):
-            # Texto con relleno gradiente
+            # Texto con relleno gradiente (con margen de seguridad)
             gc1 = parse_color(text_grad.get("color1", "#ff0000"))
             gc2 = parse_color(text_grad.get("color2", "#0000ff"))
             g_dir = text_grad.get("direction", "horizontal")
@@ -597,9 +597,12 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
             mask = Image.new("L", img.size, 0)
             md = ImageDraw.Draw(mask)
             md.multiline_text((draw_x, draw_y), text, font=font, fill=255, align=align, spacing=spacing)
-            grad = make_gradient(max(tw, 1), max(th, 1), gc1, gc2, g_dir, stops=g_stops, angle=g_angle)
+            pad = size // 4  # margen para descenders y kerning
+            gw = max(tw + pad * 2, 1)
+            gh = max(th + pad * 2, 1)
+            grad = make_gradient(gw, gh, gc1, gc2, g_dir, stops=g_stops, angle=g_angle)
             grad_full = Image.new("RGBA", img.size, (0, 0, 0, 0))
-            grad_full.paste(grad.resize((max(tw, 1), max(th, 1)), Image.LANCZOS), (draw_x, draw_y))
+            grad_full.paste(grad.resize((gw, gh), Image.LANCZOS), (draw_x - pad, draw_y - pad))
             grad_full.putalpha(mask)
             img.paste(grad_full, (0, 0), grad_full)
         else:
