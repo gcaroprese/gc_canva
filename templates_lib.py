@@ -165,10 +165,76 @@ def product_showcase(product_image=None, accent="#5d8a5e", bg_tint="#0a0e0a", w=
         elements.append({"type":"image","src":product_image,"x":int(w*0.2),"y":int(h*0.05),"w":int(w*0.6),"h":int(h*0.7)})
     # Particles
     elements += [
+        # Sombra de contacto realista
+        {"type":"contact_shadow","x":int(w*0.28),"y":int(h*0.72),"w":int(w*0.44),"h":int(h*0.04),
+         "color":"#00000050","blur":20},
         {"type":"circle","x":int(w*0.15),"y":int(h*0.3),"r":4,"color":accent,"opacity":0.12},
         {"type":"circle","x":int(w*0.85),"y":int(h*0.2),"r":3,"color":accent,"opacity":0.08},
         {"type":"circle","x":int(w*0.8),"y":int(h*0.7),"r":5,"color":accent,"opacity":0.06},
     ]
     return {"width":w,"height":h,"background":"#060806","antialias":2,
             "post":{"vignette":True,"vignette_strength":0.45,"tint":accent,"tint_strength":0.04,"grain":True,"grain_strength":4},
+            "elements":elements}
+
+
+def church_post(title="Title", verse="", reference="", accent="#c9a227",
+                bg_photo=None, church_name="", w=1080, h=1080):
+    """Post de iglesia - elegante, oscuro, espiritual."""
+    elements = [
+        {"type":"gradient","x":0,"y":0,"w":w,"h":h,
+         "stops":[[0,"#1a1200"],[0.3,"#0a0800"],[0.7,"#050400"],[1,"#020200"]],"direction":"radial"},
+    ]
+    if bg_photo and os.path.exists(bg_photo):
+        elements.append({"type":"image","src":bg_photo,"x":0,"y":0,"w":w,"h":h,"opacity":0.1})
+    elements += [
+        # Cruz dorada
+        {"type":"rect","x":w//2-3,"y":int(h*0.08),"w":6,"h":int(h*0.15),"color":accent},
+        {"type":"rect","x":w//2-int(h*0.05),"y":int(h*0.12),"w":int(h*0.1),"h":5,"color":accent},
+        # Glow detras de la cruz
+        {"type":"circle","x":w//2,"y":int(h*0.15),"r":int(h*0.08),"color":accent,"opacity":0.06},
+        # Texto
+        {"type":"text","text":verse,"x":w//2,"y":int(h*0.38),"size":min(60, w//16),"color":"#ffffff","align":"center","valign":"center",
+         "bold":True,"font":"optimus princeps","shadow":True,"shadow_blur":15,"shadow_color":accent+"30","max_width":int(w*0.8)},
+        {"type":"text","text":reference,"x":w//2,"y":int(h*0.62),"size":24,"color":accent,"align":"center","font":"gabriola"},
+        {"type":"divider","x":int(w*0.3),"y":int(h*0.70),"w":int(w*0.4),"color":accent+"40","thickness":1},
+        {"type":"text","text":church_name,"x":w//2,"y":int(h*0.76),"size":26,"color":"#8a7040","align":"center","bold":True,"font":"roboto slab"},
+        {"type":"text","text":"Todos son bienvenidos","x":w//2,"y":int(h*0.83),"size":18,"color":"#5a5040","align":"center","font":"segoe ui"},
+    ]
+    return {"width":w,"height":h,"background":"#020200","antialias":2,
+            "post":{"vignette":True,"vignette_strength":0.5,"tint":accent,"tint_strength":0.03},
+            "elements":elements}
+
+
+def etsy_listing(title_lines=None, price="$24.99", accent="#8b4513",
+                 product_image=None, w=2000, h=2000):
+    """Listing de Etsy - producto centrado, tipografia grande."""
+    if title_lines is None:
+        title_lines = ["BEST", "DOG MOM", "EVER"]
+    elements = [
+        {"type":"gradient","x":0,"y":0,"w":w,"h":h,
+         "stops":[[0,"#fdf9f3"],[0.5,"#f5ece0"],[1,"#ebe0d0"]],"direction":"radial"},
+        {"type":"circle","x":w//2,"y":int(h*0.35),"r":int(w*0.35),"color":accent,"opacity":0.04},
+    ]
+    if product_image and os.path.exists(product_image):
+        elements.append({"type":"image","src":product_image,"x":int(w*0.15),"y":int(h*0.02),"w":int(w*0.7),"h":int(h*0.5),"opacity":0.2})
+    # Titulo grande con colores degradados
+    colors = [accent, "#" + hex(int(accent.lstrip("#"), 16) + 0x303030)[2:].zfill(6), "#d4956a"]
+    y_start = int(h * 0.22)
+    for i, line in enumerate(title_lines):
+        col = colors[i % len(colors)] if i < len(colors) else accent
+        elements.append({"type":"text","text":line,"x":w//2,"y":y_start + i * int(h*0.12),
+                         "size":min(200, w//9),"color":col,"align":"center","bold":True,"font":"impact"})
+    elements += [
+        {"type":"divider","x":int(w*0.25),"y":int(h*0.60),"w":int(w*0.5),"color":accent+"60","thickness":2},
+        {"type":"text","text":"Premium Unisex T-Shirt","x":w//2,"y":int(h*0.65),"size":int(w*0.022),
+         "color":"#6b4423","align":"center","font":"bahnschrift"},
+        {"type":"text","text":"S  M  L  XL  2XL","x":w//2,"y":int(h*0.70),"size":int(w*0.018),
+         "color":"#a08060","align":"center","font":"segoe ui"},
+        {"type":"text","text":price,"x":w//2,"y":int(h*0.78),"size":int(w*0.045),
+         "color":accent,"align":"center","bold":True,"font":"roboto slab bold"},
+        {"type":"pill","x":w//2,"y":int(h*0.86),"text":"FREE SHIPPING","color":"#5d8a5e","align":"center",
+         "size":int(w*0.012),"py":int(w*0.008)},
+    ]
+    return {"width":w,"height":h,"background":"#faf8f5","antialias":2,
+            "post":{"vignette":True,"vignette_strength":0.2,"grain":True,"grain_strength":3},
             "elements":elements}

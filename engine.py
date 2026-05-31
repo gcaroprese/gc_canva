@@ -456,6 +456,19 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
             h = int(el.get("h", img.height))
             draw.line([(x, y), (x, y + h)], fill=color, width=thickness)
 
+    elif etype == "contact_shadow":
+        # Sombra de contacto realista con blur gaussiano
+        x, y = int(el.get("x", 0)), int(el.get("y", 0))
+        w = int(el.get("w", 200))
+        h = int(el.get("h", 20))
+        blur_r = int(el.get("blur", 15))
+        color = c("color", "#000000")
+        layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        ld = ImageDraw.Draw(layer)
+        ld.ellipse([x, y, x + w, y + h], fill=color)
+        layer = layer.filter(ImageFilter.GaussianBlur(radius=blur_r))
+        img.paste(layer, (0, 0), layer)
+
     elif etype == "triangle":
         x, y = int(el.get("x",0)), int(el.get("y",0))
         w, h = max(1,int(el.get("w",100))), max(1,int(el.get("h",80)))
