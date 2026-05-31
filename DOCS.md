@@ -68,6 +68,31 @@ Para efecto glow usar shadow_color con el color del acento: `"shadow_color":"#7c
 ```
 Angulo en grados (0=derecha, 90=abajo, 135=diagonal inferior-derecha). Compatible con multi-stop.
 
+### Texto con gradiente
+
+```json
+{"type":"text","text":"TITULO","x":600,"y":100,"size":72,"align":"center","bold":true,"font":"impact",
+ "text_gradient":{"color1":"#ff6b6b","color2":"#ffd93d"}}
+```
+Multi-stop: `"text_gradient":{"stops":[[0,"red"],[0.5,"yellow"],[1,"blue"]]}`
+Con angulo: `"text_gradient":{"color1":"accent","color2":"cyan","angle":30}`
+Compatible con shadow (la sombra se dibuja atras del gradiente).
+
+### Image clip (recortar en forma)
+
+```json
+{"type":"image","src":"foto.jpg","x":100,"y":100,"w":300,"h":300,
+ "clip":"circle"}
+```
+Valores de clip: `circle`, `rounded` (+ `clip_radius`), `ellipse`
+
+### Auto-centrado
+
+```json
+{"type":"rect","w":200,"h":100,"color":"accent","center_x":true,"center_y":true}
+```
+`center_x` y `center_y` auto-calculan x/y para centrar el elemento en el canvas.
+
 ### Gradientes multi-stop
 
 ```json

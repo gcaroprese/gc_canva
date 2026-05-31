@@ -545,20 +545,37 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
                 draw.multiline_text((draw_x+sh_x, draw_y+sh_y), text, font=font, fill=sh_color,
                                     align=align, spacing=spacing)
 
-        # Stroke/outline on text (circular para suavidad)
-        if el.get("text_stroke"):
-            import math
-            tcol   = parse_color(el.get("text_stroke_color", "#000000"))
-            t_sw   = int(el.get("text_stroke_width", 2))
-            steps  = max(12, t_sw * 8)
-            for i in range(steps):
-                angle = 2 * math.pi * i / steps
-                dx = t_sw * math.cos(angle)
-                dy = t_sw * math.sin(angle)
-                draw.multiline_text((draw_x + dx, draw_y + dy), text, font=font, fill=tcol,
-                                    align=align, spacing=spacing)
-
-        draw.multiline_text((draw_x, draw_y), text, font=font, fill=col, align=align, spacing=spacing)
+        # Gradient text o texto solido
+        text_grad = el.get("text_gradient")
+        if text_grad and isinstance(text_grad, dict):
+            # Texto con relleno gradiente
+            gc1 = parse_color(text_grad.get("color1", "#ff0000"))
+            gc2 = parse_color(text_grad.get("color2", "#0000ff"))
+            g_dir = text_grad.get("direction", "horizontal")
+            g_stops = text_grad.get("stops")
+            g_angle = text_grad.get("angle")
+            mask = Image.new("L", img.size, 0)
+            md = ImageDraw.Draw(mask)
+            md.multiline_text((draw_x, draw_y), text, font=font, fill=255, align=align, spacing=spacing)
+            grad = make_gradient(max(tw, 1), max(th, 1), gc1, gc2, g_dir, stops=g_stops, angle=g_angle)
+            grad_full = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            grad_full.paste(grad.resize((max(tw, 1), max(th, 1)), Image.LANCZOS), (draw_x, draw_y))
+            grad_full.putalpha(mask)
+            img.paste(grad_full, (0, 0), grad_full)
+        else:
+            # Stroke/outline (solo para texto solido)
+            if el.get("text_stroke"):
+                import math
+                tcol   = parse_color(el.get("text_stroke_color", "#000000"))
+                t_sw   = int(el.get("text_stroke_width", 2))
+                steps  = max(12, t_sw * 8)
+                for i in range(steps):
+                    a = 2 * math.pi * i / steps
+                    dx = t_sw * math.cos(a)
+                    dy = t_sw * math.sin(a)
+                    draw.multiline_text((draw_x + dx, draw_y + dy), text, font=font, fill=tcol,
+                                        align=align, spacing=spacing)
+            draw.multiline_text((draw_x, draw_y), text, font=font, fill=col, align=align, spacing=spacing)
 
     elif etype == "gradient":
         gx, gy = int(el.get("x",0)), int(el.get("y",0))
@@ -596,6 +613,20 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
             h = int(el.get("h", src_img.height))
             if w != src_img.width or h != src_img.height:
                 src_img = src_img.resize((w, h), Image.LANCZOS)
+            # Clip: recortar imagen en forma (circle, rounded)
+            clip = el.get("clip")
+            if clip:
+                mask = Image.new("L", (w, h), 0)
+                md = ImageDraw.Draw(mask)
+                if clip == "circle":
+                    r = min(w, h) // 2
+                    md.ellipse([w//2-r, h//2-r, w//2+r, h//2+r], fill=255)
+                elif clip == "rounded":
+                    clip_r = int(el.get("clip_radius", min(w, h) // 8))
+                    md.rounded_rectangle([0, 0, w, h], radius=clip_r, fill=255)
+                elif clip == "ellipse":
+                    md.ellipse([0, 0, w, h], fill=255)
+                src_img.putalpha(mask)
             rot = float(el.get("rotate", 0))
             if rot:
                 src_img = src_img.rotate(-rot, expand=True, resample=Image.BICUBIC)
@@ -710,6 +741,13 @@ def generate_from_spec(spec):
 
     for el in spec.get("elements", []):
         try:
+            # Convenience: center_x / center_y auto-centran el elemento
+            if el.get("center_x"):
+                ew = int(el.get("w", el.get("r", 0)) * 2 if el.get("r") else el.get("w", 0))
+                el["x"] = (width - ew) // 2
+            if el.get("center_y"):
+                eh = int(el.get("h", el.get("r", 0)) * 2 if el.get("r") else el.get("h", 0))
+                el["y"] = (height - eh) // 2
             draw = draw_element(img, draw, el)
         except Exception as e:
             print(f"[engine] Error en elemento {el.get('type')}: {e}")
