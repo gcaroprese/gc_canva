@@ -554,22 +554,37 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         pad_x = int(el.get("padding_x", el.get("px", 20)))
         pad_y = int(el.get("padding_y", el.get("py", 8)))
         bbox = draw.textbbox((0, 0), text, font=font)
+        text_y_offset = bbox[1]  # offset real del ascender
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         pw, ph = tw + pad_x * 2, th + pad_y * 2
         radius = int(el.get("radius", ph // 2))
-        # Si align=center, centrar el pill en x
         pill_x = x - pw // 2 if el.get("align") == "center" else x
         pill_y = y
+        # Centrado vertical real: compensar offset del ascender
+        text_draw_x = pill_x + pad_x - bbox[0]
+        text_draw_y = pill_y + pad_y - text_y_offset
         stroke_c = ci("stroke")
         stroke_w = int(el.get("stroke_width", 0))
-        # Pill outline mode: sin fondo, solo borde
+        # Anti-alias: render pill a 2x y downscale
+        ss = 2
+        pill_img = Image.new("RGBA", (pw * ss, ph * ss), (0, 0, 0, 0))
+        pill_d = ImageDraw.Draw(pill_img)
         if el.get("outline"):
-            draw_rounded_rect(draw, pill_x, pill_y, pw, ph, radius, fill=(0,0,0,0),
-                              stroke=bg, sw=stroke_w or 2)
-            draw.text((pill_x + pad_x, pill_y + pad_y), text, font=font, fill=bg)
+            r2 = min(radius * ss, pw * ss // 2, ph * ss // 2)
+            pill_d.rounded_rectangle([0, 0, pw * ss - 1, ph * ss - 1], radius=r2,
+                                      outline=bg, width=(stroke_w or 2) * ss)
+            pill_d.text(((pad_x - bbox[0]) * ss, (pad_y - text_y_offset) * ss),
+                        text, font=get_font(font_name, size * ss, bold), fill=bg)
         else:
-            draw_rounded_rect(draw, pill_x, pill_y, pw, ph, radius, bg, stroke_c, stroke_w)
-            draw.text((pill_x + pad_x, pill_y + pad_y), text, font=font, fill=tc)
+            r2 = min(radius * ss, pw * ss // 2, ph * ss // 2)
+            pill_d.rounded_rectangle([0, 0, pw * ss - 1, ph * ss - 1], radius=r2, fill=bg)
+            if stroke_c and stroke_w:
+                pill_d.rounded_rectangle([0, 0, pw * ss - 1, ph * ss - 1], radius=r2,
+                                          outline=stroke_c, width=stroke_w * ss)
+            pill_d.text(((pad_x - bbox[0]) * ss, (pad_y - text_y_offset) * ss),
+                        text, font=get_font(font_name, size * ss, bold), fill=tc)
+        pill_img = pill_img.resize((pw, ph), Image.LANCZOS)
+        img.paste(pill_img, (pill_x, pill_y), pill_img)
 
     elif etype == "text":
         text = str(el.get("text",""))
