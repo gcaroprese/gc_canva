@@ -238,13 +238,17 @@ def list_templates():
         {"id": "product_showcase", "name": "Product Showcase", "desc": "Producto centrado con glow", "size": "1200x675"},
         {"id": "church_post", "name": "Iglesia Post", "desc": "Verso + cruz dorada", "size": "1080x1080"},
         {"id": "etsy_listing", "name": "Etsy Listing", "desc": "Producto tipografico", "size": "2000x2000"},
+        {"id": "quote_card", "name": "Quote Card", "desc": "Cita/testimonial elegante", "size": "1080x1080"},
+        {"id": "stats_banner", "name": "Stats Banner", "desc": "Metricas con glow", "size": "1200x675"},
+        {"id": "feature_grid", "name": "Feature Grid", "desc": "Grid de servicios", "size": "1200x675"},
+        {"id": "minimal_brand", "name": "Minimal Brand", "desc": "Marca minimalista", "size": "1200x675"},
     ])
 
 
 @app.route("/api/template/<template_id>", methods=["POST"])
 def generate_template(template_id):
     """Genera imagen desde un template con parametros custom."""
-    from templates_lib import blog_dark_split, blog_photo_hero, dashboard_card, product_showcase, church_post, etsy_listing
+    from templates_lib import blog_dark_split, blog_photo_hero, dashboard_card, product_showcase, church_post, etsy_listing, quote_card, stats_banner, feature_grid, minimal_brand
     params = request.get_json(force=True) or {}
 
     templates = {
@@ -254,6 +258,10 @@ def generate_template(template_id):
         "product_showcase": product_showcase,
         "church_post": church_post,
         "etsy_listing": etsy_listing,
+        "quote_card": quote_card,
+        "stats_banner": stats_banner,
+        "feature_grid": feature_grid,
+        "minimal_brand": minimal_brand,
     }
 
     fn = templates.get(template_id)
