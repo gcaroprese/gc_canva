@@ -253,3 +253,127 @@ def etsy_listing(title_lines=None, price="$24.99", accent="#8b4513",
     return {"width":w,"height":h,"background":"#faf8f5","antialias":2,
             "post":{"vignette":True,"vignette_strength":0.2,"grain":True,"grain_strength":3},
             "elements":elements}
+
+
+def quote_card(quote="", author="", accent="#7c6bf5", w=1080, h=1080):
+    """Quote/testimonial — elegante, centrado, minimalista."""
+    return {
+        "width":w,"height":h,"background":"dark","antialias":2,
+        "post":{"vignette":True,"vignette_strength":0.4,"tint":accent,"tint_strength":0.02,"grain":True,"grain_strength":4},
+        "elements":[
+            {"type":"gradient","x":0,"y":0,"w":w,"h":h,
+             "stops":[[0,"#08061a"],[0.5,"#0c0a25"],[1,"#06041a"]],"direction":"radial"},
+            {"type":"rect","x":0,"y":0,"w":w,"h":3,"color":accent},
+            # Comillas decorativas grandes
+            {"type":"text","text":"\u201C","x":w//2,"y":int(h*0.12),"size":200,"color":accent,"align":"center","font":"georgia","opacity":0.12},
+            # Quote centrado
+            {"type":"text","text":quote,"x":w//2,"y":int(h*0.38),"size":min(44,w//22),"color":"#ffffff","align":"center","valign":"center",
+             "bold":True,"font":"roboto slab","shadow":True,"shadow_blur":8,"max_width":int(w*0.75)},
+            # Separador
+            {"type":"rect","x":w//2-40,"y":int(h*0.62),"w":80,"h":3,"color":accent},
+            # Autor
+            {"type":"text","text":author,"x":w//2,"y":int(h*0.68),"size":20,"color":accent,"align":"center","font":"segoe ui",
+             "uppercase":True,"letter_spacing":4},
+            # Decorativo
+            {"type":"circle","x":int(w*0.1),"y":int(h*0.85),"r":60,"color":accent,"opacity":0.03},
+            {"type":"circle","x":int(w*0.9),"y":int(h*0.15),"r":80,"color":accent,"opacity":0.025},
+        ]
+    }
+
+
+def stats_banner(stats=None, accent="#7c6bf5", w=1200, h=675):
+    """Banner de metricas/stats — numeros grandes, sin parrafos."""
+    if stats is None:
+        stats = [
+            {"value":"+340%","label":"Trafico","color":"#22c55e"},
+            {"value":"2.4K","label":"Leads","color":"#f59e0b"},
+            {"value":"98%","label":"Satisfaccion","color":accent},
+            {"value":"24/7","label":"Soporte","color":"#ef4444"},
+        ]
+    n = len(stats)
+    col_w = w // n
+    elements = [
+        {"type":"gradient","x":0,"y":0,"w":w,"h":h,
+         "stops":[[0,"#03030a"],[0.3,"#0a0820"],[0.6,"#0e0c30"],[1,"#03030a"]],"angle":145},
+        {"type":"rect","x":0,"y":0,"w":w,"h":3,"color":accent},
+    ]
+    for i, s in enumerate(stats):
+        cx = col_w * i + col_w // 2
+        elements += [
+            {"type":"rect","x":col_w*i+20,"y":int(h*0.15),"w":col_w-40,"h":int(h*0.7),
+             "color":"#0a0a1a","radius":20,"shadow":True,"shadow_color":s["color"]+"15","shadow_blur":25,"shadow_y":8},
+            {"type":"text","text":s["value"],"x":cx,"y":int(h*0.38),"size":min(72,col_w//4),
+             "color":s["color"],"align":"center","valign":"center","bold":True,"font":"impact"},
+            {"type":"rect","x":cx-25,"y":int(h*0.55),"w":50,"h":2,"color":s["color"]+"60"},
+            {"type":"text","text":s["label"],"x":cx,"y":int(h*0.62),"size":16,"color":"#8888b0",
+             "align":"center","font":"segoe ui","uppercase":True,"letter_spacing":3},
+        ]
+    elements.append({"type":"rect","x":0,"y":h-3,"w":w,"h":3,"color":accent+"30"})
+    return {"width":w,"height":h,"background":"dark","antialias":2,
+            "post":{"vignette":True,"vignette_strength":0.3,"tint":accent,"tint_strength":0.02,"grain":True,"grain_strength":3},
+            "elements":elements}
+
+
+def feature_grid(features=None, accent="#7c6bf5", w=1200, h=675):
+    """Grid de features/servicios — iconos + labels en grilla."""
+    if features is None:
+        features = [
+            {"icon":"star","label":"Calidad Premium"},
+            {"icon":"check","label":"Garantizado"},
+            {"icon":"settings","label":"Personalizable"},
+            {"icon":"share","label":"Compartible"},
+            {"icon":"search","label":"SEO Optimizado"},
+            {"icon":"mail","label":"Email Marketing"},
+        ]
+    cols = 3
+    rows = (len(features) + cols - 1) // cols
+    cell_w = (w - 120) // cols
+    cell_h = min((h - 120) // rows, 200)
+    elements = [
+        {"type":"gradient","x":0,"y":0,"w":w,"h":h,
+         "stops":[[0,"#03030a"],[0.4,"#0a0820"],[1,"#03030a"]],"angle":135},
+        {"type":"rect","x":0,"y":0,"w":w,"h":3,"color":accent},
+    ]
+    for i, f in enumerate(features):
+        col = i % cols
+        row = i // cols
+        cx = 60 + col * cell_w + cell_w // 2
+        cy = 60 + row * cell_h + cell_h // 2
+        elements += [
+            {"type":"rect","x":60+col*cell_w+10,"y":60+row*cell_h+10,"w":cell_w-20,"h":cell_h-20,
+             "color":"#0a0a1a","radius":16,"shadow":True,"shadow_color":accent+"10","shadow_blur":16,"shadow_y":6},
+            {"type":"circle","x":cx,"y":cy-20,"r":24,"color":accent,"opacity":0.12},
+            {"type":"circle","x":cx,"y":cy-20,"r":12,"color":accent,"opacity":0.25},
+            {"type":"text","text":f["label"],"x":cx,"y":cy+25,"size":15,"color":"#ccccdd",
+             "align":"center","font":"segoe ui","bold":True},
+        ]
+    return {"width":w,"height":h,"background":"dark","antialias":2,
+            "post":{"vignette":True,"vignette_strength":0.3,"tint":accent,"tint_strength":0.02},
+            "elements":elements}
+
+
+def minimal_brand(name="Brand", tagline="Tagline", accent="#7c6bf5", w=1200, h=675):
+    """Marca minimalista — logo centrado, tipografia limpia."""
+    return {
+        "width":w,"height":h,"background":"dark","antialias":2,
+        "post":{"vignette":True,"vignette_strength":0.35,"grain":True,"grain_strength":3},
+        "elements":[
+            {"type":"gradient","x":0,"y":0,"w":w,"h":h,
+             "stops":[[0,"#06041a"],[0.5,"#0a0825"],[1,"#04020f"]],"direction":"radial"},
+            # Circulos decorativos
+            {"type":"circle","x":w//2,"y":h//2,"r":int(min(w,h)*0.35),"color":accent,"opacity":0.02},
+            {"type":"circle","x":w//2,"y":h//2,"r":int(min(w,h)*0.2),"color":accent,"opacity":0.03},
+            # Nombre grande
+            {"type":"text","text":name,"x":w//2,"y":int(h*0.38),"size":min(90,w//12),"color":"#ffffff",
+             "align":"center","valign":"center","bold":True,"font":"mukta","letter_spacing":6,
+             "shadow":True,"shadow_blur":12,"shadow_color":accent+"20"},
+            # Linea accent
+            {"type":"rect","x":w//2-50,"y":int(h*0.52),"w":100,"h":3,"color":accent},
+            # Tagline
+            {"type":"text","text":tagline,"x":w//2,"y":int(h*0.60),"size":20,"color":"#8888b0",
+             "align":"center","font":"segoe ui","letter_spacing":2},
+            # Accent line bottom
+            {"type":"rect","x":0,"y":0,"w":w,"h":2,"color":accent},
+            {"type":"rect","x":0,"y":h-2,"w":w,"h":2,"color":accent+"30"},
+        ]
+    }

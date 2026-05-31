@@ -49,6 +49,26 @@ tests = {
     "08_etsy_dogs": etsy_listing(
         title_lines=["BEST","DOG MOM","EVER"],
         price="$24.99", accent="#3d2314"),
+
+    "09_quote": quote_card(
+        quote="El marketing no es sobre\nlo que vendes, es sobre\nla historia que contas",
+        author="Gabriel Caroprese",
+        accent="#c9a227"),
+
+    "10_stats": stats_banner(
+        stats=[
+            {"value":"+340%","label":"Trafico","color":"#22c55e"},
+            {"value":"2.4K","label":"Leads","color":"#f59e0b"},
+            {"value":"98%","label":"Satisfaccion","color":"#7c6bf5"},
+            {"value":"24/7","label":"Soporte","color":"#ef4444"},
+        ], accent="#7c6bf5"),
+
+    "11_features": feature_grid(accent="#7c6bf5"),
+
+    "12_brand": minimal_brand(
+        name="INFORKET",
+        tagline="Marketing Digital que Funciona",
+        accent="#7c6bf5"),
 }
 
 print("=" * 55)
