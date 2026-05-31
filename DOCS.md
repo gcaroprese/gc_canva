@@ -47,8 +47,8 @@ JSON spec compacto → imagen server-side de alta calidad. Bajo consumo de token
 | star | x,y,r,inner_r,points,color,rotate,**shadow** |
 | line | x1,y1,x2,y2,color,width |
 | gradient | x,y,w,h,color1,color2,direction,stops,**angle** |
-| pill | x,y,text,color,text_color,size,font,px,py,radius,align,**shadow** |
-| text | x,y,text,size,color,font,bold,italic,align,valign,shadow,shadow_blur,text_stroke,max_width,bg_color,bg_padding,bg_radius,spacing,**text_gradient** |
+| pill | x,y,text,color,text_color,size,font,px,py,radius,align,shadow,**outline**,stroke,stroke_width |
+| text | x,y,text,size,color,font,bold,italic,align,valign,shadow,shadow_blur,text_stroke,max_width,bg_color,bg_padding,bg_radius,spacing,text_gradient,**letter_spacing**,**uppercase** |
 | image | src(base64 o path local),x,y,w,h,rotate |
 
 ### Shadow universal

@@ -366,6 +366,21 @@ def draw_rounded_rect(draw, x, y, w, h, radius, fill, stroke=None, sw=0):
                         outline=stroke if stroke else None, width=sw if stroke else 0)
 
 
+def _draw_text_spaced(draw, pos, text, font, fill, spacing=4, letter_spacing=0, align="left"):
+    """Dibuja texto con letter-spacing custom. Si letter_spacing=0, usa multiline_text normal."""
+    if letter_spacing == 0:
+        draw.multiline_text(pos, text, font=font, fill=fill, align=align, spacing=spacing)
+        return
+    x0, y0 = pos
+    for line_idx, line in enumerate(text.split('\n')):
+        cx = x0
+        for ch in line:
+            draw.text((cx, y0), ch, font=font, fill=fill)
+            bbox = draw.textbbox((0, 0), ch, font=font)
+            cx += (bbox[2] - bbox[0]) + letter_spacing
+        y0 += font.size + spacing
+
+
 def _apply_element(img, draw, el, opacity_factor=1.0):
     etype = el.get("type", "")
 
@@ -466,12 +481,22 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         inner    = int(el.get("inner_r", outer//2))
         points   = int(el.get("points", 5))
         fill     = c("color", "#ffcc00")
+        stroke_c = ci("stroke")
+        stroke_w = int(el.get("stroke_width", 0))
         pts = []
         for i in range(points*2):
             a = math.radians(-90 + 180*i/points)
             r_i = outer if i % 2 == 0 else inner
             pts.append((cx + r_i*math.cos(a), cy + r_i*math.sin(a)))
-        draw.polygon(pts, fill=fill)
+        # Anti-alias: render 2x y downscale
+        ss = 2
+        ss_sz = (outer*2*ss+4, outer*2*ss+4)
+        aa = Image.new("RGBA", ss_sz, (0,0,0,0))
+        ad = ImageDraw.Draw(aa)
+        offset_pts = [(int((px-cx+outer)*ss+2), int((py-cy+outer)*ss+2)) for px,py in pts]
+        ad.polygon(offset_pts, fill=fill, outline=stroke_c, width=stroke_w*ss if stroke_c else 0)
+        aa = aa.resize((outer*2+2, outer*2+2), Image.LANCZOS)
+        img.paste(aa, (cx-outer-1, cy-outer-1), aa)
 
     elif etype == "line":
         x1,y1 = int(el.get("x1",0)), int(el.get("y1",0))
@@ -499,8 +524,16 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         # Si align=center, centrar el pill en x
         pill_x = x - pw // 2 if el.get("align") == "center" else x
         pill_y = y
-        draw_rounded_rect(draw, pill_x, pill_y, pw, ph, radius, bg)
-        draw.text((pill_x + pad_x, pill_y + pad_y), text, font=font, fill=tc)
+        stroke_c = ci("stroke")
+        stroke_w = int(el.get("stroke_width", 0))
+        # Pill outline mode: sin fondo, solo borde
+        if el.get("outline"):
+            draw_rounded_rect(draw, pill_x, pill_y, pw, ph, radius, fill=(0,0,0,0),
+                              stroke=bg, sw=stroke_w or 2)
+            draw.text((pill_x + pad_x, pill_y + pad_y), text, font=font, fill=bg)
+        else:
+            draw_rounded_rect(draw, pill_x, pill_y, pw, ph, radius, bg, stroke_c, stroke_w)
+            draw.text((pill_x + pad_x, pill_y + pad_y), text, font=font, fill=tc)
 
     elif etype == "text":
         text = str(el.get("text",""))
@@ -515,7 +548,12 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         font_name = el.get("font", el.get("fontFamily", "arial"))
         font   = get_font(font_name, size, bold, italic)
         spacing = int(el.get("line_spacing", el.get("spacing", 4)))
+        letter_spacing = int(el.get("letter_spacing", 0))  # px extra entre letras
+        uppercase = el.get("uppercase", False)
         max_width = el.get("max_width")  # auto-wrap si se especifica
+
+        if uppercase:
+            text = text.upper()
 
         # Auto-wrap text si max_width especificado
         if max_width:
@@ -538,6 +576,11 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=spacing)
         tw = bbox[2] - bbox[0]
         th = bbox[3] - bbox[1]
+        # Ajustar ancho si hay letter_spacing
+        if letter_spacing:
+            lines = text.split('\n')
+            max_chars = max(len(l) for l in lines) if lines else 0
+            tw += letter_spacing * (max_chars - 1) if max_chars > 1 else 0
 
         # Background color behind text (highlight)
         bg_color = el.get("bg_color")
@@ -616,9 +659,10 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
                     a = 2 * math.pi * i / steps
                     dx = t_sw * math.cos(a)
                     dy = t_sw * math.sin(a)
-                    draw.multiline_text((draw_x + dx, draw_y + dy), text, font=font, fill=tcol,
-                                        align=align, spacing=spacing)
-            draw.multiline_text((draw_x, draw_y), text, font=font, fill=col, align=align, spacing=spacing)
+                    _draw_text_spaced(draw, (draw_x + dx, draw_y + dy), text, font=font, fill=tcol,
+                                      spacing=spacing, letter_spacing=letter_spacing, align=align)
+            _draw_text_spaced(draw, (draw_x, draw_y), text, font=font, fill=col,
+                              spacing=spacing, letter_spacing=letter_spacing, align=align)
 
     elif etype == "gradient":
         gx, gy = int(el.get("x",0)), int(el.get("y",0))
