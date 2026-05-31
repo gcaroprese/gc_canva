@@ -23,23 +23,36 @@ def blog_dark_split(title="Title", subtitle="Subtitle", accent="#7c6bf5",
             {"type":"image","src":bg_photo,"x":w//2,"y":0,"w":w//2,"h":h,"opacity":0.2},
             {"type":"gradient","x":w//2,"y":0,"w":w//2,"h":h,"color1":"#03030aEE","color2":"#03030a40","direction":"horizontal"},
         ]
+    # Calcular posiciones dinamicas basadas en el titulo
+    title_size = min(62, w // 18)
+    title_lines = title.count('\n') + 1
+    # Estimar lineas extra por wrap (max_width = w//2-120)
+    avg_char_w = title_size * 0.55
+    max_chars = int((w // 2 - 120) / max(avg_char_w, 1))
+    for line in title.split('\n'):
+        if len(line) > max_chars:
+            title_lines += len(line) // max_chars
+    title_end_y = 110 + title_lines * (title_size + 12)
+    sep_y = title_end_y + 25
+    sub_y = sep_y + 30
+    cta_y = min(sub_y + 70, h - 110)
+
     # Glass card
     elements += [
         {"type":"rect","x":40,"y":35,"w":w//2-20,"h":h-70,"color":accent,"opacity":0.03,"radius":20},
         # Categoria pill
         {"type":"pill","x":65,"y":60,"text":subtitle.split()[0].upper() if subtitle else "BLOG","color":accent,"size":12,"py":8},
         # Titulo
-        {"type":"text","text":title,"x":65,"y":110,"size":min(62, w//18),"bold":True,"font":"mukta",
-         "text_gradient":{"color1":"#ffffff","color2":accent+"80"},
-         "shadow":True,"shadow_blur":10,"shadow_color":accent+"20","max_width":w//2-120},
+        {"type":"text","text":title,"x":65,"y":110,"size":title_size,"bold":True,"font":"mukta",
+         "color":"#ffffff","shadow":True,"shadow_blur":10,"shadow_color":accent+"20","max_width":w//2-120},
         # Separador
-        {"type":"divider","x":65,"y":h*55//100,"w":w//5,"color":accent,"thickness":2},
+        {"type":"divider","x":65,"y":sep_y,"w":w//5,"color":accent,"thickness":2},
         # Subtitulo
-        {"type":"text","text":subtitle,"x":65,"y":h*60//100,"size":18,"color":"#8888b0","font":"segoe ui","max_width":w//2-120},
+        {"type":"text","text":subtitle,"x":65,"y":sub_y,"size":18,"color":"#8888b0","font":"segoe ui","max_width":w//2-120},
         # CTA
-        {"type":"rect","x":65,"y":h*78//100,"w":200,"h":46,"color":accent,"radius":23,
+        {"type":"rect","x":65,"y":cta_y,"w":200,"h":46,"color":accent,"radius":23,
          "shadow":True,"shadow_color":accent+"50","shadow_blur":16,"shadow_y":4},
-        {"type":"text","text":"Leer mas","x":165,"y":h*78//100+14,"size":14,"color":"white","align":"center","bold":True,"font":"segoe ui"},
+        {"type":"text","text":"Leer mas","x":165,"y":cta_y+14,"size":14,"color":"white","align":"center","bold":True,"font":"segoe ui"},
         # Brand
         {"type":"text","text":brand,"x":65,"y":h-50,"size":13,"color":"#4a4a6a","font":"consolas"},
         {"type":"rect","x":0,"y":h-2,"w":w,"h":2,"color":accent+"30"},
