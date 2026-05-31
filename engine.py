@@ -505,6 +505,42 @@ def _apply_element(img, draw, el, opacity_factor=1.0):
         w_    = int(el.get("width", el.get("stroke_width", 2)))
         draw.line([(x1,y1),(x2,y2)], fill=col, width=w_)
 
+    elif etype == "arc":
+        # Arco: para semicirculos, curvas, handle de taza, etc.
+        x, y = int(el.get("x",0)), int(el.get("y",0))
+        w, h = max(1,int(el.get("w",100))), max(1,int(el.get("h",100)))
+        start = float(el.get("start", 0))
+        end = float(el.get("end", 180))
+        col = c("color", "#cccccc")
+        sw = int(el.get("width", el.get("stroke_width", 3)))
+        fill_c = ci("fill")
+        if fill_c:
+            draw.pieslice([x, y, x+w, y+h], start, end, fill=fill_c, outline=col, width=sw)
+        else:
+            draw.arc([x, y, x+w, y+h], start, end, fill=col, width=sw)
+
+    elif etype == "ring":
+        # Anillo: circulo hueco (para donas, progress rings, etc)
+        cx, cy = int(el.get("x",0)), int(el.get("y",0))
+        r = int(el.get("r", 50))
+        thickness = int(el.get("thickness", 8))
+        col = c("color", "#cccccc")
+        start = float(el.get("start", 0))
+        end = float(el.get("end", 360))
+        # Render anti-aliased
+        ss = 2
+        sz = (r*2*ss+4, r*2*ss+4)
+        aa = Image.new("RGBA", sz, (0,0,0,0))
+        ad = ImageDraw.Draw(aa)
+        margin = 2
+        box = [margin, margin, r*2*ss+margin, r*2*ss+margin]
+        if end - start >= 360:
+            ad.ellipse(box, outline=col, width=thickness*ss)
+        else:
+            ad.arc(box, start, end, fill=col, width=thickness*ss)
+        aa = aa.resize((r*2+2, r*2+2), Image.LANCZOS)
+        img.paste(aa, (cx-r-1, cy-r-1), aa)
+
     elif etype == "pill":
         # Pill/badge: rect redondeado con texto centrado adentro (ahorra tokens)
         x, y = int(el.get("x", 0)), int(el.get("y", 0))
