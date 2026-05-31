@@ -1,0 +1,127 @@
+/* ============================================================
+   GC CANVA - Fuentes del proyecto
+   Generado para uso en el editor Fabric.js
+   ============================================================ */
+
+/* Arial Black */
+@font-face { font-family: 'Arial Black'; src: url('/static/fonts/ariblk.ttf'); font-weight: 900; }
+
+/* Bahnschrift */
+@font-face { font-family: 'Bahnschrift'; src: url('/static/fonts/bahnschrift.ttf'); }
+
+/* Calibri */
+@font-face { font-family: 'Calibri'; src: url('/static/fonts/calibri.ttf'); font-weight: 400; }
+@font-face { font-family: 'Calibri'; src: url('/static/fonts/calibrib.ttf'); font-weight: 700; }
+@font-face { font-family: 'Calibri'; src: url('/static/fonts/calibrii.ttf'); font-weight: 400; font-style: italic; }
+@font-face { font-family: 'Calibri'; src: url('/static/fonts/calibril.ttf'); font-weight: 300; }
+
+/* Candara */
+@font-face { font-family: 'Candara'; src: url('/static/fonts/Candara.ttf'); font-weight: 400; }
+@font-face { font-family: 'Candara'; src: url('/static/fonts/Candarab.ttf'); font-weight: 700; }
+@font-face { font-family: 'Candara'; src: url('/static/fonts/Candarai.ttf'); font-style: italic; }
+
+/* Cambria */
+@font-face { font-family: 'Cambria'; src: url('/static/fonts/cambriab.ttf'); font-weight: 700; }
+@font-face { font-family: 'Cambria'; src: url('/static/fonts/cambriai.ttf'); font-style: italic; }
+
+/* Comic Sans MS */
+@font-face { font-family: 'Comic Sans MS'; src: url('/static/fonts/comic.ttf'); font-weight: 400; }
+@font-face { font-family: 'Comic Sans MS'; src: url('/static/fonts/comicbd.ttf'); font-weight: 700; }
+
+/* Consolas */
+@font-face { font-family: 'Consolas'; src: url('/static/fonts/consola.ttf'); font-weight: 400; }
+@font-face { font-family: 'Consolas'; src: url('/static/fonts/consolab.ttf'); font-weight: 700; }
+@font-face { font-family: 'Consolas'; src: url('/static/fonts/consolai.ttf'); font-style: italic; }
+
+/* Cooper Black */
+@font-face { font-family: 'Cooper Black'; src: url('/static/fonts/Cooper Std Black.ttf'); font-weight: 900; }
+
+/* Corbel */
+@font-face { font-family: 'Corbel'; src: url('/static/fonts/corbel.ttf'); font-weight: 400; }
+@font-face { font-family: 'Corbel'; src: url('/static/fonts/corbelb.ttf'); font-weight: 700; }
+
+/* Courier New */
+@font-face { font-family: 'Courier New'; src: url('/static/fonts/cour.ttf'); font-weight: 400; }
+@font-face { font-family: 'Courier New'; src: url('/static/fonts/courbd.ttf'); font-weight: 700; }
+
+/* Franklin Gothic */
+@font-face { font-family: 'Franklin Gothic'; src: url('/static/fonts/framd.ttf'); font-weight: 700; }
+@font-face { font-family: 'Franklin Gothic'; src: url('/static/fonts/framdit.ttf'); font-weight: 700; font-style: italic; }
+
+/* Gabriola */
+@font-face { font-family: 'Gabriola'; src: url('/static/fonts/Gabriola.ttf'); }
+
+/* Georgia */
+@font-face { font-family: 'Georgia'; src: url('/static/fonts/georgia.ttf'); font-weight: 400; }
+@font-face { font-family: 'Georgia'; src: url('/static/fonts/georgiab.ttf'); font-weight: 700; }
+@font-face { font-family: 'Georgia'; src: url('/static/fonts/georgiai.ttf'); font-style: italic; }
+@font-face { font-family: 'Georgia'; src: url('/static/fonts/georgiaz.ttf'); font-weight: 700; font-style: italic; }
+
+/* Impact */
+@font-face { font-family: 'Impact'; src: url('/static/fonts/impact.ttf'); }
+
+/* Moon */
+@font-face { font-family: 'Moon'; src: url('/static/fonts/Moon Bold.otf'); font-weight: 700; }
+@font-face { font-family: 'Moon'; src: url('/static/fonts/Moon Light.otf'); font-weight: 300; }
+@font-face { font-family: 'Moon Bold'; src: url('/static/fonts/Moon Bold.otf'); }
+@font-face { font-family: 'Moon Light'; src: url('/static/fonts/Moon Light.otf'); }
+
+/* Mukta */
+@font-face { font-family: 'Mukta'; src: url('/static/fonts/Mukta-Regular.ttf'); font-weight: 400; }
+@font-face { font-family: 'Mukta'; src: url('/static/fonts/Mukta-Bold.ttf'); font-weight: 700; }
+@font-face { font-family: 'Mukta'; src: url('/static/fonts/Mukta-Light.ttf'); font-weight: 300; }
+@font-face { font-family: 'Mukta'; src: url('/static/fonts/Mukta-Medium.ttf'); font-weight: 500; }
+@font-face { font-family: 'Mukta'; src: url('/static/fonts/Mukta-SemiBold.ttf'); font-weight: 600; }
+@font-face { font-family: 'Mukta'; src: url('/static/fonts/Mukta-ExtraBold.ttf'); font-weight: 800; }
+@font-face { font-family: 'Mukta'; src: url('/static/fonts/Mukta-ExtraLight.ttf'); font-weight: 200; }
+
+/* Narnia */
+@font-face { font-family: 'Narnia'; src: url('/static/fonts/Narnia.otf'); }
+
+/* Optimus Princeps */
+@font-face { font-family: 'Optimus Princeps'; src: url('/static/fonts/OptimusPrinceps.ttf'); }
+@font-face { font-family: 'Optimus Princeps Semibold'; src: url('/static/fonts/OptimusPrincepsSemiBold.ttf'); font-weight: 600; }
+
+/* Rakoon */
+@font-face { font-family: 'Rakoon'; src: url('/static/fonts/Rakoon_PersonalUse.ttf'); }
+
+/* Roboto Slab */
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-Regular.ttf'); font-weight: 400; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-Bold.ttf'); font-weight: 700; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-Light.ttf'); font-weight: 300; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-Thin.ttf'); font-weight: 100; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-Black.ttf'); font-weight: 900; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-Medium.ttf'); font-weight: 500; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-SemiBold.ttf'); font-weight: 600; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-ExtraBold.ttf'); font-weight: 800; }
+@font-face { font-family: 'Roboto Slab'; src: url('/static/fonts/RobotoSlab-ExtraLight.ttf'); font-weight: 200; }
+
+/* Rockwell */
+@font-face { font-family: 'Rockwell'; src: url('/static/fonts/ROCK.TTF'); font-weight: 400; }
+@font-face { font-family: 'Rockwell'; src: url('/static/fonts/Rockwell-Bold.ttf'); font-weight: 700; }
+
+/* Segoe UI */
+@font-face { font-family: 'Segoe UI'; src: url('/static/fonts/segoeui.ttf'); font-weight: 400; }
+@font-face { font-family: 'Segoe UI'; src: url('/static/fonts/segoeuib.ttf'); font-weight: 700; }
+@font-face { font-family: 'Segoe UI'; src: url('/static/fonts/segoeuii.ttf'); font-style: italic; }
+@font-face { font-family: 'Segoe UI'; src: url('/static/fonts/segoeuil.ttf'); font-weight: 300; }
+
+/* Tahoma */
+@font-face { font-family: 'Tahoma'; src: url('/static/fonts/tahoma.ttf'); font-weight: 400; }
+@font-face { font-family: 'Tahoma'; src: url('/static/fonts/tahomabd.ttf'); font-weight: 700; }
+
+/* Times New Roman */
+@font-face { font-family: 'Times New Roman'; src: url('/static/fonts/times.ttf'); font-weight: 400; }
+@font-face { font-family: 'Times New Roman'; src: url('/static/fonts/timesbd.ttf'); font-weight: 700; }
+@font-face { font-family: 'Times New Roman'; src: url('/static/fonts/timesi.ttf'); font-style: italic; }
+@font-face { font-family: 'Times New Roman'; src: url('/static/fonts/timesbi.ttf'); font-weight: 700; font-style: italic; }
+
+/* Trebuchet MS */
+@font-face { font-family: 'Trebuchet MS'; src: url('/static/fonts/trebuc.ttf'); font-weight: 400; }
+@font-face { font-family: 'Trebuchet MS'; src: url('/static/fonts/trebucbd.ttf'); font-weight: 700; }
+@font-face { font-family: 'Trebuchet MS'; src: url('/static/fonts/trebucit.ttf'); font-style: italic; }
+
+/* Verdana */
+@font-face { font-family: 'Verdana'; src: url('/static/fonts/verdana.ttf'); font-weight: 400; }
+@font-face { font-family: 'Verdana'; src: url('/static/fonts/verdanab.ttf'); font-weight: 700; }
+@font-face { font-family: 'Verdana'; src: url('/static/fonts/verdanai.ttf'); font-style: italic; }

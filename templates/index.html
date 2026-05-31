@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GC Canva</title>
+  <link rel="icon" type="image/x-icon" href="/static/icon.ico">
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/fonts.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <header id="topbar">
+    <div class="tb-left">
+      <span class="logo">GC<span>Canva</span></span>
+      <input type="text" id="designName" value="Diseño sin título" title="Nombre del diseño">
+    </div>
+    <div class="tb-center">
+      <button id="undoBtn" title="Deshacer (Ctrl+Z)" class="icon-btn">&#8617;</button>
+      <button id="redoBtn" title="Rehacer (Ctrl+Y)" class="icon-btn">&#8618;</button>
+      <div class="tb-sep"></div>
+      <button id="gridBtn" title="Grilla" class="icon-btn toggle-btn">&#8862;</button>
+      <button id="snapBtn" title="Snap a grilla" class="icon-btn toggle-btn">&#9881;</button>
+      <div class="tb-sep"></div>
+      <button id="zoomOutBtn" class="icon-btn" title="Alejar">&#8722;</button>
+      <span id="zoomDisplay">100%</span>
+      <button id="zoomInBtn" class="icon-btn" title="Acercar">&#43;</button>
+      <button id="zoomFitBtn" class="icon-btn" title="Ajustar pantalla">&#9635;</button>
+    </div>
+    <div class="tb-right">
+      <button id="magicResizeBtn" class="btn-ghost" title="Redimensionar para otras plataformas">&#8596; Magic Resize</button>
+      <div class="export-wrap">
+        <select id="exportFormat" title="Formato">
+          <option value="webp" selected>WebP</option>
+          <option value="png">PNG</option>
+          <option value="jpg">JPG</option>
+        </select>
+        <div class="quality-wrap" title="Calidad (solo WebP/JPG)">
+          <input type="range" id="exportQuality" min="60" max="100" value="92">
+          <span id="qualityLabel">92</span>
+        </div>
+        <select id="exportScale" title="Escala de exportacion">
+          <option value="1">1x</option>
+          <option value="2" selected>2x</option>
+          <option value="3">3x</option>
+          <option value="4">4x</option>
+        </select>
+        <button id="downloadBtn" class="btn-primary">&#8659; Descargar</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <div id="main">
+
+    <!-- ===== LEFT PANEL ===== -->
+    <aside id="leftPanel">
+      <div id="panelTabs">
+        <button class="ptab active" data-tab="tools"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V10l9-7z" stroke="currentColor" stroke-width="2" fill="none"/></svg> Diseño</button>
+        <button class="ptab" data-tab="icons"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2" fill="none"/></svg> Iconos</button>
+        <button class="ptab" data-tab="bg"><svg viewBox="0 0 24 24" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2" fill="none"/></svg> Fondo</button>
+        <button class="ptab" data-tab="ai"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2.26C17.81 13.47 19 11.38 19 9a7 7 0 0 0-7-7z" stroke="currentColor" stroke-width="2" fill="none"/><line x1="9" y1="21" x2="15" y2="21" stroke="currentColor" stroke-width="2"/></svg> AI</button>
+      </div>
+
+      <!-- TOOLS TAB -->
+      <div id="tab-tools" class="tab-pane active">
+        <div class="section-label">Seleccion</div>
+        <div class="tool-grid">
+          <button class="tool-btn active" data-tool="select" title="Seleccionar (V)">
+            <svg viewBox="0 0 24 24"><path d="M4 2l16 9-7 2-4 7z" fill="currentColor"/></svg>
+            <span>Seleccionar</span>
+          </button>
+        </div>
+
+        <div class="section-label">Texto</div>
+        <div class="tool-grid">
+          <button class="tool-btn" data-tool="text" title="Texto (T)">
+            <svg viewBox="0 0 24 24"><path d="M4 6V4h16v2h-7v14h-2V6z" fill="currentColor"/></svg>
+            <span>Texto</span>
+          </button>
+        </div>
+
+        <div class="section-label">Formas</div>
+        <div class="tool-grid two-col">
+          <button class="tool-btn" data-tool="rect" title="Rectangulo (R)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>Rect</span>
+          </button>
+          <button class="tool-btn" data-tool="circle" title="Circulo (C)">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>Circulo</span>
+          </button>
+          <button class="tool-btn" data-tool="triangle" title="Triangulo">
+            <svg viewBox="0 0 24 24"><path d="M12 4L22 20H2z" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>Triangulo</span>
+          </button>
+          <button class="tool-btn" data-tool="line" title="Linea">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="4" stroke="currentColor" stroke-width="2.5"/></svg>
+            <span>Linea</span>
+          </button>
+          <button class="tool-btn" data-tool="arrow" title="Flecha">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/><path d="M14 7l5 5-5 5" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>Flecha</span>
+          </button>
+          <button class="tool-btn" data-tool="star" title="Estrella">
+            <svg viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            <span>Estrella</span>
+          </button>
+          <button class="tool-btn" data-tool="polygon" title="Poligono">
+            <svg viewBox="0 0 24 24"><path d="M12 3l8 5v8l-8 5-8-5V8z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            <span>Poligono</span>
+          </button>
+          <button class="tool-btn" data-tool="diamond" title="Diamante">
+            <svg viewBox="0 0 24 24"><path d="M12 3l9 9-9 9-9-9z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            <span>Diamante</span>
+          </button>
+        </div>
+
+        <div class="section-label">Imagen</div>
+        <div class="tool-grid">
+          <button class="tool-btn" id="uploadImageBtn">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>Subir imagen</span>
+          </button>
+          <button class="tool-btn" id="qrBtn">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" stroke="currentColor" stroke-width="2" fill="none"/><rect x="13" y="3" width="8" height="8" stroke="currentColor" stroke-width="2" fill="none"/><rect x="3" y="13" width="8" height="8" stroke="currentColor" stroke-width="2" fill="none"/><rect x="5" y="5" width="4" height="4" fill="currentColor"/><rect x="15" y="5" width="4" height="4" fill="currentColor"/><rect x="5" y="15" width="4" height="4" fill="currentColor"/><path d="M13 13h2v2h-2zM17 13h4v2h-4zM15 17h2v4h-2zM19 17h2v4h-2z" fill="currentColor"/></svg>
+            <span>Codigo QR</span>
+          </button>
+        </div>
+        <input type="file" id="imageFileInput" accept="image/*" style="display:none">
+
+        <div class="section-label">Proyecto</div>
+        <div class="tool-grid two-col">
+          <button class="tool-btn" id="saveProjectBtn">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor" stroke-width="2" fill="none"/><polyline points="17,21 17,13 7,13 7,21" stroke="currentColor" stroke-width="2" fill="none"/><polyline points="7,3 7,8 15,8" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>Guardar JSON</span>
+          </button>
+          <button class="tool-btn" id="loadProjectBtn">
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span>Cargar JSON</span>
+          </button>
+        </div>
+        <input type="file" id="projectFileInput" accept=".json" style="display:none">
+
+        <div class="section-label">Tamaño del canvas</div>
+        <select id="canvasPresetSelect" class="full-select">
+          <option value="">Seleccionar preset...</option>
+        </select>
+        <div class="size-row">
+          <input type="number" id="cwInput" placeholder="Ancho" min="10" max="8000">
+          <span>x</span>
+          <input type="number" id="chInput" placeholder="Alto" min="10" max="8000">
+          <button id="applySizeBtn" class="btn-secondary-sm">OK</button>
+        </div>
+      </div>
+
+      <!-- ICONS TAB -->
+      <div id="tab-icons" class="tab-pane">
+        <input type="text" id="iconSearchInput" class="search-input" placeholder="Buscar icono...">
+        <div id="iconCategoryBtns"></div>
+        <div id="iconColor" class="icon-color-row">
+          <label>Color: <input type="color" id="iconColorPicker" value="#1a1a2e"></label>
+        </div>
+        <div id="iconGrid"></div>
+      </div>
+
+      <!-- BG TAB -->
+      <div id="tab-bg" class="tab-pane">
+        <div class="section-label">Color solido</div>
+        <div class="color-row">
+          <input type="color" id="bgSolidColor" value="#ffffff">
+          <button id="applyBgSolid" class="btn-secondary-sm">Aplicar</button>
+        </div>
+        <div class="quick-colors" id="quickBgColors"></div>
+
+        <div class="section-label">Gradiente</div>
+        <div class="color-row">
+          <input type="color" id="gradC1" value="#667eea">
+          <span>&#8594;</span>
+          <input type="color" id="gradC2" value="#764ba2">
+        </div>
+        <select id="gradDir" class="full-select">
+          <option value="horizontal">Horizontal &#8594;</option>
+          <option value="vertical">Vertical &#8595;</option>
+          <option value="diagonal">Diagonal &#8600;</option>
+        </select>
+        <div class="grad-presets" id="gradPresets"></div>
+        <button id="applyBgGrad" class="btn-secondary">Aplicar gradiente</button>
+
+        <div class="section-label">Imagen de fondo</div>
+        <button id="uploadBgBtn" class="btn-secondary">Subir imagen</button>
+        <input type="file" id="bgFileInput" accept="image/*" style="display:none">
+
+        <div class="section-label">Patrones</div>
+        <div id="patternBtns"></div>
+      </div>
+
+      <!-- AI TAB -->
+      <div id="tab-ai" class="tab-pane">
+        <div class="ai-header">
+          <strong>Claude JSON Mode</strong>
+          <p class="hint">Genera imagenes con Pillow (bajo consumo de tokens). Pega un JSON spec o usa una plantilla.</p>
+        </div>
+        <textarea id="claudeJsonInput" placeholder='{
+  "width": 1200,
+  "height": 630,
+  "background": "#1a1a2e",
+  "format": "webp",
+  "quality": 92,
+  "elements": [
+    {"type":"gradient","x":0,"y":0,"w":1200,"h":630,"color1":"#16213e","color2":"#0f3460","direction":"diagonal"},
+    {"type":"rect","x":40,"y":40,"w":1120,"h":550,"color":"#e94560","opacity":0.08,"radius":20},
+    {"type":"text","text":"Tu Diseño","x":600,"y":260,"size":72,"color":"#ffffff","align":"center","bold":true,"shadow":true}
+  ]
+}'></textarea>
+        <div class="ai-actions">
+          <button id="aiPreviewBtn" class="btn-secondary">&#128065; Preview</button>
+          <button id="aiDownloadBtn" class="btn-primary">&#8659; Descargar</button>
+        </div>
+        <div id="aiPreviewWrap"></div>
+
+        <div class="section-label">Plantillas rapidas</div>
+        <div id="quickTemplates"></div>
+      </div>
+    </aside>
+
+    <!-- ===== CANVAS AREA ===== -->
+    <main id="canvasArea">
+      <!-- Align toolbar (shown when element selected) -->
+      <div id="alignBar" class="hidden">
+        <button data-align="left" title="Alinear izquierda">&#10136;</button>
+        <button data-align="centerH" title="Centrar horizontal">&#8614;</button>
+        <button data-align="right" title="Alinear derecha">&#10136;</button>
+        <span class="ab-sep"></span>
+        <button data-align="top" title="Alinear arriba">&#8613;</button>
+        <button data-align="centerV" title="Centrar vertical">&#8613;</button>
+        <button data-align="bottom" title="Alinear abajo">&#8613;</button>
+        <span class="ab-sep"></span>
+        <button id="flipHBtn" title="Voltear horizontal">&#8596;</button>
+        <button id="flipVBtn" title="Voltear vertical">&#8597;</button>
+        <span class="ab-sep"></span>
+        <button id="groupBtn" title="Agrupar (Ctrl+G)">Agrupar</button>
+        <button id="ungroupBtn" title="Desagrupar (Ctrl+Shift+G)">Desagrupar</button>
+        <span class="ab-sep"></span>
+        <button id="lockBtn" title="Bloquear">&#128274;</button>
+        <span class="ab-sep"></span>
+        <button id="deleteBtn" title="Eliminar (Del)" class="btn-danger-sm">&#128465;</button>
+      </div>
+
+      <div id="canvasWrapper">
+        <div id="canvasContainer">
+          <canvas id="mainCanvas"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <!-- ===== RIGHT PANEL ===== -->
+    <aside id="rightPanel">
+      <div id="propertiesPanel">
+        <div class="no-sel">
+          <svg viewBox="0 0 24 24" width="40" height="40"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#4b5563"/></svg>
+          <p>Selecciona un elemento para editar sus propiedades</p>
+        </div>
+      </div>
+    </aside>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- Magic Resize -->
+<div id="magicResizeModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Magic Resize</h3><button class="modal-close" data-modal="magicResizeModal">&#10005;</button></div>
+    <p class="modal-hint">Redimensiona tu diseño para otra plataforma. Los elementos se escalan proporcionalmente.</p>
+    <div id="magicResizeList"></div>
+    <div class="modal-custom-size">
+      <label>Personalizado:</label>
+      <input type="number" id="mrCustomW" placeholder="Ancho">
+      <span>x</span>
+      <input type="number" id="mrCustomH" placeholder="Alto">
+      <button id="mrCustomBtn" class="btn-secondary">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR Code -->
+<div id="qrModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Generar Codigo QR</h3><button class="modal-close" data-modal="qrModal">&#10005;</button></div>
+    <input type="text" id="qrText" placeholder="https://ejemplo.com  o  cualquier texto..." class="modal-input">
+    <div class="modal-row3">
+      <label>Tamaño<input type="number" id="qrSize" value="300" min="100" max="800"></label>
+      <label>Color<input type="color" id="qrFgColor" value="#000000"></label>
+      <label>Fondo<input type="color" id="qrBgColor" value="#ffffff"></label>
+    </div>
+    <div class="modal-actions">
+      <button id="generateQrBtn" class="btn-primary">Generar QR</button>
+      <button class="modal-close btn-secondary" data-modal="qrModal">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Filters -->
+<div id="filterModal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-header"><h3>Ajustes de imagen</h3><button class="modal-close" data-modal="filterModal">&#10005;</button></div>
+    <div class="filter-grid">
+      <label>Brillo <span id="brightVal">100</span>%<input type="range" id="fBright" min="10" max="300" value="100"></label>
+      <label>Contraste <span id="contrastVal">100</span>%<input type="range" id="fContrast" min="10" max="300" value="100"></label>
+      <label>Saturacion <span id="satVal">100</span>%<input type="range" id="fSat" min="0" max="300" value="100"></label>
+      <label>Nitidez <span id="sharpVal">100</span>%<input type="range" id="fSharp" min="0" max="300" value="100"></label>
+      <label>Desenfoque <span id="blurVal">0</span>px<input type="range" id="fBlur" min="0" max="20" value="0"></label>
+    </div>
+    <div class="filter-presets">
+      <div class="section-label">Presets</div>
+      <div class="preset-row">
+        <button data-preset="normal">Normal</button>
+        <button data-preset="grayscale">Gris</button>
+        <button data-preset="sepia">Sepia</button>
+        <button data-preset="vivid">Vivido</button>
+        <button data-preset="matte">Mate</button>
+        <button data-preset="cold">Frio</button>
+        <button data-preset="warm">Calido</button>
+        <button data-preset="faded">Desvanecido</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="applyFilterBtn" class="btn-primary">Aplicar</button>
+      <button class="modal-close btn-secondary" data-modal="filterModal">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="/static/js/editor.js"></script>
+</body>
+</html>
